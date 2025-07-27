@@ -513,11 +513,12 @@ ${orderText}
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-center gap-8">
             <Button
+              variant="ghost"
               size="sm"
-              className="flex flex-col items-center gap-1 text-xs transition rounded-md hover:text-primary"
+              className="flex flex-col items-center gap-1 text-xs transition rounded-md hover:bg-primary hover:text-white"
               onClick={() => navigate('/')}
             >
-              <Home className="w-8 h-8" />
+              <Home className="w-6 h-6" />
               الرئيسية
             </Button>
             
