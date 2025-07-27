@@ -354,6 +354,7 @@ export default function Dashboard() {
                   variant="outline" 
                   className="w-full justify-start"
                   disabled={!restaurant}
+                  onClick={() => restaurant && navigate(`/${restaurant.username}/menu-management`)}
                 >
                   <Menu className="w-4 h-4 ml-2" />
                   إدارة القائمة
@@ -362,6 +363,7 @@ export default function Dashboard() {
                   variant="outline" 
                   className="w-full justify-start"
                   disabled={!restaurant}
+                  onClick={() => restaurant && navigate(`/${restaurant.username}/orders`)}
                 >
                   <ShoppingBag className="w-4 h-4 ml-2" />
                   الطلبات
@@ -370,6 +372,7 @@ export default function Dashboard() {
                   variant="outline" 
                   className="w-full justify-start"
                   disabled={!restaurant}
+                  onClick={() => restaurant && navigate(`/${restaurant.username}/analytics`)}
                 >
                   <BarChart3 className="w-4 h-4 ml-2" />
                   التقارير
@@ -378,6 +381,12 @@ export default function Dashboard() {
                   variant="outline" 
                   className="w-full justify-start"
                   disabled={!restaurant}
+                  onClick={() => {
+                    toast({
+                      title: 'قريباً',
+                      description: 'ميزة رفع الصور ستكون متاحة قريباً',
+                    });
+                  }}
                 >
                   <Upload className="w-4 h-4 ml-2" />
                   رفع الصور

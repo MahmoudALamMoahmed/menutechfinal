@@ -14,6 +14,8 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [restaurantName, setRestaurantName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -56,6 +58,18 @@ export default function Auth() {
     setIsLoading(true);
     setError('');
 
+    if (!username.trim()) {
+      setError('اسم المستخدم مطلوب');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!restaurantName.trim()) {
+      setError('اسم المطعم مطلوب');
+      setIsLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('كلمات المرور غير متطابقة');
       setIsLoading(false);
@@ -68,7 +82,7 @@ export default function Auth() {
       return;
     }
 
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email, password, username, restaurantName);
     
     if (error) {
       if (error.message.includes('already registered')) {
@@ -153,6 +167,28 @@ export default function Auth() {
               
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="restaurant-name">اسم المطعم</Label>
+                    <Input
+                      id="restaurant-name"
+                      type="text"
+                      value={restaurantName}
+                      onChange={(e) => setRestaurantName(e.target.value)}
+                      required
+                      placeholder="اسم مطعمك"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="username">اسم المستخدم</Label>
+                    <Input
+                      id="username"
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
+                      placeholder="اسم المستخدم الخاص بك"
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">البريد الإلكتروني</Label>
                     <Input

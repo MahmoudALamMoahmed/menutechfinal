@@ -7,7 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, username: string, restaurantName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -46,16 +46,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, username: string, restaurantName: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl
       }
     });
+
+    // إذا تم إنشاء المستخدم بنجاح، إنشاء المطعم
+    if (!error && data.user) {
+      const { error: restaurantError } = await supabase
+        .from('restaurants')
+        .insert({
+          owner_id: data.user.id,
+          name: restaurantName,
+          username: username,
+          description: `مطعم ${restaurantName} - نقدم أفضل الأطباق الشهية`,
+        });
+      
+      if (restaurantError) {
+        console.error('خطأ في إنشاء المطعم:', restaurantError);
+        return { error: restaurantError };
+      }
+    }
+    
     return { error };
   };
 
