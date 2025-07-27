@@ -534,7 +534,7 @@ ${orderText}
                   >
                     <ShoppingCart className="w-6 h-6" />
                     سلة الطلبات
-                    <Badge className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs min-w-5 h-5 flex items-center justify-center rounded-full">
+                    <Badge className="absolute -top-1 -right-1 bg-primary text-white text-xs min-w-5 h-5 flex items-center justify-center rounded-full">
                       {cart.length}
                     </Badge>
                   </button>
