@@ -519,7 +519,7 @@ ${orderText}
               onClick={() => navigate('/')}
             >
               <Home className="w-6 h-6" />
-              الرئيسيةس
+              الرئيسية
             </Button>
             
             {cart.length > 0 && (
