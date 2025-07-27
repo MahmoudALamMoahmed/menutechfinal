@@ -543,7 +543,7 @@ ${orderText}
                   </DialogHeader>
 
                   {/* كل المحتوى داخل هذا الصندوق القابل للسكرول */}
-                  <div className="overflow-y-auto flex-1 space-y-4 pr-1 max-h-[calc(90vh-100px)]">
+                  <div className="overflow-y-auto flex-1 space-y-4 pr-2 max-h-[calc(90vh-100px)]">
                     {/* عناصر السلة */}
                     <div className="space-y-2">
                       {cart.map((item) => (
