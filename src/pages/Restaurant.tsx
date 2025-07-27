@@ -528,14 +528,15 @@ ${orderText}
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex flex-col items-center gap-1 text-xs relative"
+                    className="group flex flex-col items-center gap-2 text-xs relative px-2 py-1 transition hover:text-primary"
                   >
-                    <ShoppingCart className="w-5 h-5" />
-                    سلة الطلبات
+                    <ShoppingCart className="w-6 h-6 group-hover:scale-110 transition" />
+                    <span>سلة الطلبات</span>
                     <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-5 h-5 flex items-center justify-center rounded-full">
                       {cart.length}
                     </Badge>
                   </Button>
+
                 </DialogTrigger>
                 <DialogContent className="max-w-md p-4 flex flex-col" dir="rtl">
                   <DialogHeader>
