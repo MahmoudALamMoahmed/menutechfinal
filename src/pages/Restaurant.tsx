@@ -515,11 +515,11 @@ ${orderText}
             <Button
               variant="ghost"
               size="sm"
-              className="flex flex-col items-center gap-1 text-xs"
+              className="flex flex-col items-center gap-1 text-xs transition rounded-md hover:bg-primary hover:text-white"
               onClick={() => navigate('/')}
             >
-              <Home className="w-5 h-5" />
-              الرئيسية
+              <Home className="w-6 h-6" />
+              الرئيسيةس
             </Button>
             
             {cart.length > 0 && (
