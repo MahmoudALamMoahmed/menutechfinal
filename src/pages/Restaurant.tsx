@@ -7,6 +7,10 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Home, 
   ShoppingCart, 
@@ -64,6 +68,10 @@ export default function Restaurant() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [showCartDialog, setShowCartDialog] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   
   const isOwner = user && restaurant && user.id === restaurant.owner_id;
 
@@ -157,17 +165,42 @@ export default function Restaurant() {
   };
 
   const sendOrderToWhatsApp = () => {
-    if (cart.length === 0) return;
+    if (cart.length === 0 || !customerName || !customerAddress || !customerPhone) return;
 
     const orderText = cart.map(item => 
       `${item.name} x${item.quantity} = ${item.price * item.quantity} جنيه`
     ).join('\n');
     
     const totalPrice = getTotalPrice();
-    const message = `مرحباً، أريد طلب:\n\n${orderText}\n\nالإجمالي: ${totalPrice} جنيه\n\nشكراً لكم.`;
+    const message = `🛒 طلب جديد من ${restaurant?.name}
+
+👤 بيانات العميل:
+الاسم: ${customerName}
+العنوان: ${customerAddress}
+رقم الهاتف: ${customerPhone}
+
+📋 تفاصيل الطلب:
+${orderText}
+
+💰 الإجمالي: ${totalPrice} جنيه
+💳 طريقة الدفع: الدفع عند الاستلام
+
+شكراً لكم.`;
     
     const whatsappUrl = `https://wa.me/${restaurant?.whatsapp_phone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+    
+    // إفراغ السلة وإغلاق النافذة
+    setCart([]);
+    setShowCartDialog(false);
+    setCustomerName('');
+    setCustomerAddress('');
+    setCustomerPhone('');
+    
+    toast({
+      title: 'تم إرسال الطلب',
+      description: 'تم إرسال طلبك بنجاح عبر واتساب',
+    });
   };
 
   const filteredMenuItems = activeCategory === 'all' 
@@ -203,6 +236,114 @@ export default function Restaurant() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-800">{restaurant.name}</h1>
           <div className="flex items-center gap-2">
+            {cart.length > 0 && (
+              <Dialog open={showCartDialog} onOpenChange={setShowCartDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="relative">
+                    <ShoppingCart className="w-4 h-4 ml-2" />
+                    سلة الطلبات
+                    <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs">
+                      {cart.length}
+                    </Badge>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md" dir="rtl">
+                  <DialogHeader>
+                    <DialogTitle>سلة الطلبات</DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    {/* عرض عناصر السلة */}
+                    <div className="space-y-2">
+                      {cart.map((item) => (
+                        <div key={item.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                          <div className="flex-1">
+                            <div className="font-medium">{item.name}</div>
+                            <div className="text-sm text-gray-600">
+                              {item.price} جنيه × {item.quantity}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => removeFromCart(item.id)}
+                            >
+                              <Minus className="w-3 h-3" />
+                            </Button>
+                            <span className="font-medium">{item.quantity}</span>
+                            <Button
+                              size="sm"
+                              onClick={() => addToCart(item)}
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="text-lg font-bold text-center">
+                      الإجمالي: {getTotalPrice()} جنيه
+                    </div>
+                    
+                    <div className="text-sm text-center text-gray-600">
+                      طريقة الدفع: الدفع عند الاستلام
+                    </div>
+                    
+                    <Separator />
+                    
+                    {/* بيانات التوصيل */}
+                    <div className="space-y-3">
+                      <h3 className="font-medium">بيانات التوصيل</h3>
+                      
+                      <div>
+                        <Label htmlFor="customerName">اسم العميل</Label>
+                        <Input
+                          id="customerName"
+                          value={customerName}
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          placeholder="أدخل اسمك"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="customerAddress">عنوان التوصيل</Label>
+                        <Textarea
+                          id="customerAddress"
+                          value={customerAddress}
+                          onChange={(e) => setCustomerAddress(e.target.value)}
+                          placeholder="أدخل عنوان التوصيل بالتفصيل"
+                          rows={3}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="customerPhone">رقم العميل</Label>
+                        <Input
+                          id="customerPhone"
+                          value={customerPhone}
+                          onChange={(e) => setCustomerPhone(e.target.value)}
+                          placeholder="أدخل رقم هاتفك"
+                          type="tel"
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button
+                      onClick={sendOrderToWhatsApp}
+                      className="w-full"
+                      disabled={!customerName || !customerAddress || !customerPhone}
+                    >
+                      إرسال الطلب واتساب
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+            
             {isOwner && (
               <Button
                 variant="outline"
@@ -379,7 +520,7 @@ export default function Restaurant() {
             
             {cart.length > 0 && (
               <Button
-                onClick={sendOrderToWhatsApp}
+                onClick={() => setShowCartDialog(true)}
                 className="flex items-center gap-2"
               >
                 <ShoppingCart className="w-4 h-4" />
