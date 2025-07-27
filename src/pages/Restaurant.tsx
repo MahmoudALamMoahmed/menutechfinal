@@ -437,36 +437,12 @@ ${orderText}
           <div className="text-center py-12">
             <p className="text-gray-600">لا توجد عناصر في القائمة حالياً</p>
           </div>
-        ) : (
+         ) : (
           <div className="grid gap-4">
             {filteredMenuItems.map((item) => (
               <Card key={item.id} className="overflow-hidden">
                 <CardContent className="p-4">
                   <div className="flex flex-row-reverse items-center gap-4">
-                    {/* صورة المنتج */}
-                    {item.image_url && (
-                      <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-
-                    {/* تفاصيل المنتج */}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg text-gray-800 mb-1">
-                        {item.name}
-                      </h3>
-                      {item.description && (
-                        <p className="text-gray-600 text-sm mb-2">{item.description}</p>
-                      )}
-                      <span className="text-lg font-bold text-primary block mb-2">
-                        {item.price} جنيه
-                      </span>
-                    </div>
-
                     {/* زر الإضافة أو التحكم */}
                     <div className="flex items-center gap-2">
                       {cart.find(cartItem => cartItem.id === item.id) ? (
@@ -498,6 +474,31 @@ ${orderText}
                         </Button>
                       )}
                     </div>
+
+                    {/* تفاصيل المنتج */}
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg text-gray-800 mb-1">
+                        {item.name}
+                      </h3>
+                      {item.description && (
+                        <p className="text-gray-600 text-sm mb-2">{item.description}</p>
+                      )}
+                      <span className="text-lg font-bold text-primary block mb-2">
+                        {item.price} جنيه
+                      </span>
+                    </div>
+
+                    
+                    {/* صورة المنتج */}
+                    {item.image_url && (
+                      <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                        <img
+                          src={item.image_url}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
