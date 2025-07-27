@@ -513,8 +513,7 @@ ${orderText}
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-center gap-8">
             <Button
-              variant="ghost"
-              size="sm"
+              
               className="flex flex-col items-center gap-1 text-xs transition rounded-md hover:text-primary"
               onClick={() => navigate('/')}
             >
