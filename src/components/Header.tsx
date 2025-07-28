@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, username, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -57,7 +57,8 @@ const Header = () => {
                 <span className="font-cairo text-sm text-muted-foreground">مرحباً {user.email}</span>
                 <Button 
                   variant="secondary"
-                  onClick={() => navigate(`/${user.email?.split('@')[0]}`)}
+                  onClick={() => username && navigate(`/${username}`)}
+                  disabled={!username}
                   className="font-cairo"
                 >
                   إدارة مطعمك
@@ -124,9 +125,12 @@ const Header = () => {
                       variant="secondary"
                       className="w-full font-cairo"
                       onClick={() => {
-                        navigate(`/${user.email?.split('@')[0]}`);
-                        setIsMenuOpen(false);
+                        if (username) {
+                          navigate(`/${username}`);
+                          setIsMenuOpen(false);
+                        }
                       }}
+                      disabled={!username}
                     >
                       إدارة مطعمك
                     </Button>

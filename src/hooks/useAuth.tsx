@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  username: string | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, username: string, restaurantName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -17,6 +18,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState<string | null>(null);
+
+  // دالة مساعدة لجلب اسم المستخدم
+  const fetchUsername = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('restaurants')
+      .select('username')
+      .eq('owner_id', userId)
+      .single();
+    
+    if (!error && data) {
+      setUsername(data.username);
+    }
+  };
 
   useEffect(() => {
     // إعداد مستمع حالة المصادقة
@@ -24,6 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // جلب اسم المستخدم عند تسجيل الدخول
+          setTimeout(() => {
+            fetchUsername(session.user.id);
+          }, 0);
+        } else {
+          setUsername(null);
+        }
+        
         setLoading(false);
       }
     );
@@ -32,6 +57,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        fetchUsername(session.user.id);
+      }
+      
       setLoading(false);
     });
 
@@ -85,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     session,
     loading,
+    username,
     signIn,
     signUp,
     signOut,
