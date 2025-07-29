@@ -47,10 +47,14 @@ export default function Orders() {
         .from('restaurants')
         .select('*')
         .eq('username', restaurantUsername)
-        .single();
+        .maybeSingle();
 
       if (restaurantError) {
         throw restaurantError;
+      }
+
+      if (!restaurantData) {
+        throw new Error('المطعم غير موجود');
       }
 
       setRestaurant(restaurantData);
