@@ -454,7 +454,7 @@ ${orderText}
                   size="icon"
                   onClick={() => setViewType('grid')}
                 >
-                  <LayoutGrid className="w-6 h-6" />
+                  
                 </Button>
                 <Button
                   variant={viewType === 'list' ? 'default' : 'outline'}
