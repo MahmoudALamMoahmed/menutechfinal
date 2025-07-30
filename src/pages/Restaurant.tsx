@@ -168,50 +168,14 @@ export default function Restaurant() {
     if (cart.length === 0 || !customerName || !customerAddress || !customerPhone || !restaurant) return;
 
     try {
-      // تحضير بيانات الطلب
-      const orderItems = cart.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        total: item.price * item.quantity
-      }));
-
       const totalPrice = getTotalPrice();
 
-      // حفظ الطلب في قاعدة البيانات
-      const { data: orderData, error } = await supabase
-        .from('orders')
-        .insert({
-          restaurant_id: restaurant.id,
-          customer_name: customerName,
-          customer_phone: customerPhone,
-          notes: customerAddress,
-          items: orderItems,
-          total_price: totalPrice,
-          status: 'pending',
-          is_confirmed: false
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('خطأ في حفظ الطلب:', error);
-        toast({
-          title: 'خطأ',
-          description: 'حدث خطأ في حفظ الطلب، يرجى المحاولة مرة أخرى',
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      // تحضير رسالة الواتساب مع رقم الطلب
+      // تحضير رسالة الواتساب
       const orderText = cart.map(item => 
         `${item.name} x${item.quantity} = ${item.price * item.quantity} جنيه`
       ).join('\n');
       
       const message = `🛒 طلب جديد من ${restaurant.name}
-رقم الطلب: #${orderData.id.slice(0, 8)}
 
 👤 بيانات العميل:
 الاسم: ${customerName}
@@ -240,7 +204,7 @@ ${orderText}
       
       toast({
         title: 'تم إرسال الطلب',
-        description: `تم حفظ طلبك برقم #${orderData.id.slice(0, 8)} وإرساله عبر واتساب`,
+        description: 'تم إرسال طلبك عبر واتساب بنجاح',
       });
 
     } catch (error) {
