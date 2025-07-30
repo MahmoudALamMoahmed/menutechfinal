@@ -419,119 +419,36 @@ ${orderText}
         </div>
       </div>
 
-{/* Categories */}
-      {categories.length > 0 && (
-        <div className="bg-white border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex gap-2 overflow-x-auto">
-              <Button
-                variant={activeCategory === 'all' ? 'default' : 'outline'}
-                
-      
-                size="sm"
-                onClick={() => setActiveCategory('all')}
-              >
+        {/* Categories */}
+              {categories.length > 0 && (
+                <div className="bg-white border-b">
+                  <div className="container mx-auto px-4 py-4">
+                    <div className="flex gap-2 overflow-x-auto">
+                      <Button
+                        variant={activeCategory === 'all' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setActiveCategory('all')}
+                      >
 
- الكل
-              </Button>
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={activeCategory === category.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setActiveCategory(category.id)}
-                >
-                  {category.name}
-                </Button>
-              ))}
-
-                
-            </div>
-          </div>
-        </div>
- )}
-
-
-     {/* Menu Items */}
-      <div className="container mx-auto px-4 py-6 pb-32">
-        {filteredMenuItems.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600">لا توجد عناصر في القائمة حالياً</p>
-          </div>
-         ) : (
-
-           <div className="grid gap-4">
-            {filteredMenuItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex flex-row-reverse items-center gap-4">
-                    {/* زر الإضافة أو التحكم */}
-                    <div className="flex items-center gap-2">
-                      {cart.find(cartItem => cartItem.id === item.id) ? (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => removeFromCart(item.id)}
-                          >
-                            <Minus className="w-4 h-4" />
-                          </Button>
-                          <span className="font-semibold">
-                            {cart.find(cartItem => cartItem.id === item.id)?.quantity}
-                          </span>
-                          <Button
-                            size="sm"
-                            onClick={() => addToCart(item)}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ) : (
+                      الكل
+                      </Button>
+                      {categories.map((category) => (
                         <Button
+                          key={category.id}
+                          variant={activeCategory === category.id ? 'default' : 'outline'}
                           size="sm"
-                          onClick={() => addToCart(item)}
+                          onClick={() => setActiveCategory(category.id)}
                         >
-                          <Plus className="w-4 h-4 ml-1" />
-                          إضافة
+                          {category.name}
                         </Button>
-                      )}
-                    </div>
+                      ))}
 
-                    {/* تفاصيل المنتج */}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg text-gray-800 mb-1">
-                        {item.name}
-                      </h3>
-                      {item.description && (
-                        <p className="text-gray-600 text-sm mb-2">{item.description}</p>
-                      )}
-                      <span className="text-lg font-bold text-primary block mb-2">
-                        {item.price} جنيه
-                      </span>
                     </div>
-
-                    
-                    {/* صورة المنتج */}
-                    {item.image_url && (
-                      <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-
-          
+                </div>
         )}
-      </div>
 
+     
 
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
