@@ -453,7 +453,7 @@ ${orderText}
                   variant="outline"
                   size="icon"
                   onClick={() => setViewType('grid')}
-                  className={`border-2 ${viewType === 'grid' ? 'border-black bg-black text-white' : 'border-black'}`}
+                  className={`border-1 ${viewType === 'grid' ? 'border-black bg-black text-white' : 'border-black'}`}
                 >
                   <LayoutGrid className="w-6 h-6" />
                 </Button>
@@ -461,7 +461,7 @@ ${orderText}
                   variant="outline"
                   size="icon"
                   onClick={() => setViewType('list')}
-                  className={`border-2 ${viewType === 'list' ? 'border-black bg-black text-white' : 'border-black'}`}
+                  className={`border-1 ${viewType === 'list' ? 'border-black bg-black text-white' : 'border-black'}`}
                 >
                   <List className="w-6 h-6" />
                 </Button>
