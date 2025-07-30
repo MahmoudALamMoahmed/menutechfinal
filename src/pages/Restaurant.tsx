@@ -448,7 +448,20 @@ ${orderText}
               </div>
 
               {/* تبديل طريقة العرض */}
-              
+              <div className="flex gap-2">
+                <Button
+                  size="icon"
+                  onClick={() => setViewType('grid')}
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  onClick={() => setViewType('list')}
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
