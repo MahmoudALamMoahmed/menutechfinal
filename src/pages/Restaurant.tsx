@@ -453,21 +453,21 @@ ${orderText}
                   onClick={() => setViewType("grid")}
                   className={`p-3 border-2 rounded-md transition ${
                     viewType === "grid"
-                      ? "bg-black text-white border-black"
+                      ? "bg-primary text-white border-black"
                       : "bg-white text-black border-black"
                   }`}
                 >
-                  <LayoutGrid className="w-7 h-7" />
+                  <LayoutGrid className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => setViewType("list")}
                   className={`p-3 border-2 rounded-md transition ${
                     viewType === "list"
-                      ? "bg-black text-white border-black"
+                      ? "bg-primary text-white border-black"
                       : "bg-white text-black border-black"
                   }`}
                 >
-                  <List className="w-7 h-7" />
+                  <List className="w-5 h-5" />
                 </button>
               </div>
 
