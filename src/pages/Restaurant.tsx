@@ -449,23 +449,28 @@ ${orderText}
 
               {/* تبديل طريقة العرض */}
               <div className="flex gap-2">
-                <Button
-                  variant={viewType === 'grid' ? 'default' : 'outline'}
-                  size="icon"
-                  onClick={() => setViewType('grid')}
-                  className={`border-2 ${viewType === 'grid' ? 'border-black bg-primary text-primary-foreground' : 'border-black'}`}
+                <button
+                  onClick={() => setViewType("grid")}
+                  className={`p-3 border-2 rounded-md transition ${
+                    viewType === "grid"
+                      ? "bg-black text-white border-black"
+                      : "bg-white text-black border-black"
+                  }`}
                 >
-                  <LayoutGrid className="w-6 h-6" />
-                </Button>
-                <Button
-                  variant={viewType === 'list' ? 'default' : 'outline'}
-                  size="icon"
-                  onClick={() => setViewType('list')}
-                  className={`border-2 ${viewType === 'list' ? 'border-black bg-primary text-primary-foreground' : 'border-black'}`}
+                  <LayoutGrid className="w-7 h-7" />
+                </button>
+                <button
+                  onClick={() => setViewType("list")}
+                  className={`p-3 border-2 rounded-md transition ${
+                    viewType === "list"
+                      ? "bg-black text-white border-black"
+                      : "bg-white text-black border-black"
+                  }`}
                 >
-                  <List className="w-6 h-6" />
-                </Button>
+                  <List className="w-7 h-7" />
+                </button>
               </div>
+
             </div>
           </div>
         </div>
