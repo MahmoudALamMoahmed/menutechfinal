@@ -450,18 +450,20 @@ ${orderText}
               {/* تبديل طريقة العرض */}
               <div className="flex gap-2">
                 <Button
-                  variant={viewType === 'grid' ? 'default' : 'outline'}
+                  variant="outline"
                   size="icon"
                   onClick={() => setViewType('grid')}
+                  className={`border-2 ${viewType === 'grid' ? 'border-black bg-black text-white' : 'border-black'}`}
                 >
-                  <LayoutGrid className="w-4 h-4" />
+                  <LayoutGrid className="w-6 h-6" />
                 </Button>
                 <Button
-                  variant={viewType === 'list' ? 'default' : 'outline'}
+                  variant="outline"
                   size="icon"
                   onClick={() => setViewType('list')}
+                  className={`border-2 ${viewType === 'list' ? 'border-black bg-black text-white' : 'border-black'}`}
                 >
-                  <List className="w-4 h-4" />
+                  <List className="w-6 h-6" />
                 </Button>
               </div>
             </div>
