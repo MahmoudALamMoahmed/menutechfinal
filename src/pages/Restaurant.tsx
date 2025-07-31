@@ -457,7 +457,7 @@ ${orderText}
                       : "bg-white text-black border-black"
                   }`}
                 >
-                  <List className="w-5 h-5" />
+                  <List className="w-5 h-5 stroke-[1.5]" />
                 </button>
                 <button
                   onClick={() => setViewType("grid")}
@@ -467,7 +467,7 @@ ${orderText}
                       : "bg-white text-black border-black"
                   }`}
                 >
-                  <LayoutGrid className="w-5 h-5 stroke-[3]" />
+                  <LayoutGrid className="w-5 h-5 stroke-[1.5]" />
                 </button>
               </div>
 
