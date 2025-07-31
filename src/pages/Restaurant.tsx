@@ -457,17 +457,17 @@ ${orderText}
                       : "bg-white text-gray-700 border-black"
                   }`}
                 >
-                  <List className="w-5 h-5 text-black" />
+                  <List className="w-5 h-5 border" />
                 </button>
                 <button
                   onClick={() => setViewType("grid")}
                   className={`p-3 border rounded-md transition ${
                     viewType === "grid"
                       ? "bg-primary text-white border-black"
-                      : "bg-white border-black"
+                      : "bg-white text-gray-700 border-black"
                   }`}
                 >
-                  <LayoutGrid className="w-5 h-5 text-black" />
+                  <LayoutGrid className="w-5 h-5 border" />
                 </button>
               </div>
 
