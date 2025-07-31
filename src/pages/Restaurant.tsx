@@ -457,7 +457,7 @@ ${orderText}
                       : "bg-white text-gray-700 border-black"
                   }`}
                 >
-                  <List className="w-5 h-5" />
+                  <List className="w-5 h-5 p-2" />
                 </button>
                 <button
                   onClick={() => setViewType("grid")}
