@@ -542,13 +542,14 @@ ${orderText}
             ))}
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filteredMenuItems.map((item) => (
               <Card key={item.id} className="overflow-hidden">
                 <CardContent className="p-4">
                   <div className="flex flex-row-reverse items-center gap-4">
+                    {/* زر الإضافة أو التحكم */}
                     <div className="flex items-center gap-2">
-                      {cart.find(cartItem => cartItem.id === item.id) ? (
+                      {cart.find((cartItem) => cartItem.id === item.id) ? (
                         <div className="flex items-center gap-2">
                           <Button
                             size="sm"
@@ -558,26 +559,21 @@ ${orderText}
                             <Minus className="w-4 h-4" />
                           </Button>
                           <span className="font-semibold">
-                            {cart.find(cartItem => cartItem.id === item.id)?.quantity}
+                            {cart.find((cartItem) => cartItem.id === item.id)?.quantity}
                           </span>
-                          <Button
-                            size="sm"
-                            onClick={() => addToCart(item)}
-                          >
+                          <Button size="sm" onClick={() => addToCart(item)}>
                             <Plus className="w-4 h-4" />
                           </Button>
                         </div>
                       ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => addToCart(item)}
-                        >
+                        <Button size="sm" onClick={() => addToCart(item)}>
                           <Plus className="w-4 h-4 ml-1" />
                           إضافة
                         </Button>
                       )}
                     </div>
 
+                    {/* تفاصيل المنتج */}
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg text-gray-800 mb-1">{item.name}</h3>
                       {item.description && (
@@ -588,6 +584,7 @@ ${orderText}
                       </span>
                     </div>
 
+                    {/* صورة المنتج */}
                     {item.image_url && (
                       <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                         <img
@@ -602,6 +599,7 @@ ${orderText}
               </Card>
             ))}
           </div>
+
         )}
       </div>
 
