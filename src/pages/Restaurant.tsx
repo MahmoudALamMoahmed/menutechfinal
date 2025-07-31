@@ -499,7 +499,9 @@ ${orderText}
                   )}
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg text-gray-800 mb-1">{item.name}</h3>
-                    
+                    {item.description && (
+                      <p className="text-gray-600 text-sm mb-2">{item.description}</p>
+                    )}
                     <span className="text-lg font-bold text-primary block mb-2">
                       {item.price} جنيه
                     </span>
@@ -578,7 +580,9 @@ ${orderText}
 
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg text-gray-800 mb-1">{item.name}</h3>
-                      
+                      {item.description && (
+                        <p className="text-gray-600 text-sm mb-2">{item.description}</p>
+                      )}
                       <span className="text-lg font-bold text-primary block mb-2">
                         {item.price} جنيه
                       </span>
