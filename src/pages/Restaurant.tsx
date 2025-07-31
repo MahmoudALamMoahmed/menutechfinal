@@ -467,7 +467,7 @@ ${orderText}
                       : "bg-white text-black border-black"
                   }`}
                 >
-                  <LayoutGrid className="w-5 h-5 stroke-[1.5]" />
+                  <LayoutGrid className="w-5 h-5 stroke-[3]" />
                 </button>
               </div>
 
