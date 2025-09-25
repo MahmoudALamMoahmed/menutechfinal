@@ -24,7 +24,8 @@ import {
   Settings,
   LayoutGrid,
   List,
-  Facebook
+  Facebook,
+  Instagram
 } from 'lucide-react';
 import RestaurantFooter from '@/components/RestaurantFooter';
 
@@ -426,10 +427,19 @@ ${orderText}
                 href={restaurant.facebook_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
+                className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
               >
-                <Facebook className="w-4 h-4" />
-                <span>فيسبوك</span>
+                <Facebook className="w-5 h-5" />
+              </a>
+            )}
+            {restaurant.instagram_url && (
+              <a 
+                href={restaurant.instagram_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center text-pink-600 hover:text-pink-800 transition-colors"
+              >
+                <Instagram className="w-5 h-5" />
               </a>
             )}
             <div className="flex items-center gap-1">
