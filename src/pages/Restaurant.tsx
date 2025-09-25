@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Home, 
   ShoppingCart, 
@@ -57,6 +58,14 @@ interface MenuItem {
   category_id: string;
 }
 
+interface Size {
+  id: string;
+  menu_item_id: string;
+  name: string;
+  price: number;
+  display_order: number;
+}
+
 interface Category {
   id: string;
   name: string;
@@ -65,6 +74,7 @@ interface Category {
 
 interface CartItem extends MenuItem {
   quantity: number;
+  selectedSize?: Size;
 }
 
 export default function Restaurant() {
@@ -76,6 +86,7 @@ export default function Restaurant() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [sizes, setSizes] = useState<Size[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -127,6 +138,14 @@ export default function Restaurant() {
         .order('display_order');
 
       setMenuItems(menuData || []);
+
+      // جلب الأحجام
+      const { data: sizesData } = await supabase
+        .from('sizes')
+        .select('*')
+        .order('display_order');
+
+      setSizes(sizesData || []);
     } catch (error) {
       console.error('Error fetching restaurant data:', error);
       toast({
@@ -139,37 +158,60 @@ export default function Restaurant() {
     }
   };
 
-  const addToCart = (item: MenuItem) => {
+  const addToCart = (item: MenuItem, selectedSize?: Size) => {
+    const cartItem = { 
+      ...item, 
+      selectedSize,
+      // إذا كان هناك حجم محدد، استخدم سعر الحجم، وإلا استخدم السعر الافتراضي
+      price: selectedSize ? selectedSize.price : item.price
+    };
+    
     setCart(prev => {
-      const existingItem = prev.find(cartItem => cartItem.id === item.id);
+      // البحث عن نفس الصنف بنفس الحجم
+      const existingItem = prev.find(cartItem => 
+        cartItem.id === item.id && 
+        cartItem.selectedSize?.id === selectedSize?.id
+      );
+      
       if (existingItem) {
         return prev.map(cartItem =>
-          cartItem.id === item.id
+          cartItem.id === item.id && cartItem.selectedSize?.id === selectedSize?.id
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         );
       }
-      return [...prev, { ...item, quantity: 1 }];
+      return [...prev, { ...cartItem, quantity: 1 }];
     });
     
+    const sizeText = selectedSize ? ` - ${selectedSize.name}` : '';
     toast({
       title: 'تم إضافة العنصر',
-      description: `تم إضافة ${item.name} إلى السلة`,
+      description: `تم إضافة ${item.name}${sizeText} إلى السلة`,
     });
   };
 
-  const removeFromCart = (itemId: string) => {
+  const removeFromCart = (itemId: string, sizeId?: string) => {
     setCart(prev => {
-      const existingItem = prev.find(cartItem => cartItem.id === itemId);
+      const existingItem = prev.find(cartItem => 
+        cartItem.id === itemId && 
+        cartItem.selectedSize?.id === sizeId
+      );
+      
       if (existingItem && existingItem.quantity > 1) {
         return prev.map(cartItem =>
-          cartItem.id === itemId
+          cartItem.id === itemId && cartItem.selectedSize?.id === sizeId
             ? { ...cartItem, quantity: cartItem.quantity - 1 }
             : cartItem
         );
       }
-      return prev.filter(cartItem => cartItem.id !== itemId);
+      return prev.filter(cartItem => 
+        !(cartItem.id === itemId && cartItem.selectedSize?.id === sizeId)
+      );
     });
+  };
+
+  const getSizesForItem = (itemId: string) => {
+    return sizes.filter(size => size.menu_item_id === itemId);
   };
 
   const getTotalPrice = () => {
@@ -282,9 +324,14 @@ ${orderText}
                     {/* عرض عناصر السلة */}
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {cart.map((item) => (
-                        <div key={item.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <div key={`${item.id}-${item.selectedSize?.id || 'no-size'}`} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                           <div className="flex-1">
                             <div className="font-medium">{item.name}</div>
+                            {item.selectedSize && (
+                              <div className="text-xs text-gray-500">
+                                الحجم: {item.selectedSize.name}
+                              </div>
+                            )}
                             <div className="text-sm text-gray-600">
                               {item.price} جنيه × {item.quantity}
                             </div>
@@ -293,14 +340,14 @@ ${orderText}
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => removeFromCart(item.id)}
+                              onClick={() => removeFromCart(item.id, item.selectedSize?.id)}
                             >
                               <Minus className="w-3 h-3" />
                             </Button>
                             <span className="font-medium">{item.quantity}</span>
                             <Button
                               size="sm"
-                              onClick={() => addToCart(item)}
+                              onClick={() => addToCart(item, item.selectedSize)}
                             >
                               <Plus className="w-3 h-3" />
                             </Button>
@@ -531,31 +578,41 @@ ${orderText}
                     {item.description && (
                       <p className="text-gray-600 text-sm mb-2">{item.description}</p>
                     )}
-                    <span className="text-lg font-bold text-primary block mb-2">
-                      {item.price} جنيه
-                    </span>
+                    
+                    {/* عرض الأحجام */}
+                    {getSizesForItem(item.id).length > 0 ? (
+                      <div className="mb-2">
+                        <p className="text-sm font-medium mb-1">الأحجام المتاحة:</p>
+                        {getSizesForItem(item.id).map((size) => (
+                          <div key={size.id} className="flex justify-between text-sm mb-1">
+                            <span>{size.name}</span>
+                            <span className="font-bold">{size.price} ج.م</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-lg font-bold text-primary block mb-2">
+                        {item.price} جنيه
+                      </span>
+                    )}
                   </div>
                   <div className="mt-auto">
-                    {cart.find(cartItem => cartItem.id === item.id) ? (
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => removeFromCart(item.id)}
-                        >
-                          <Minus className="w-4 h-4" />
-                        </Button>
-                        <span className="font-semibold">
-                          {cart.find(cartItem => cartItem.id === item.id)?.quantity}
-                        </span>
-                        <Button
-                          size="sm"
-                          onClick={() => addToCart(item)}
-                        >
-                          <Plus className="w-4 h-4 ml-1" />
-                          إضافة
-                        </Button>
-                      </div>
+                    {getSizesForItem(item.id).length > 0 ? (
+                      <Select onValueChange={(sizeId) => {
+                        const size = sizes.find(s => s.id === sizeId);
+                        if (size) addToCart(item, size);
+                      }}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="اختر الحجم" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getSizesForItem(item.id).map((size) => (
+                            <SelectItem key={size.id} value={size.id}>
+                              {size.name} - {size.price} ج.م
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <Button
                         size="sm"

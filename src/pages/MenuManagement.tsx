@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +15,8 @@ import {
   Plus,
   Edit,
   Trash2,
-  Save
+  Save,
+  Ruler
 } from 'lucide-react';
 
 interface Restaurant {
@@ -43,6 +45,14 @@ interface MenuItem {
   display_order: number;
 }
 
+interface Size {
+  id: string;
+  menu_item_id: string;
+  name: string;
+  price: number;
+  display_order: number;
+}
+
 export default function MenuManagement() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
@@ -52,14 +62,17 @@ export default function MenuManagement() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [sizes, setSizes] = useState<Size[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
   // Form states
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showItemForm, setShowItemForm] = useState(false);
+  const [showSizesDialog, setShowSizesDialog] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   
   const [categoryForm, setCategoryForm] = useState({
     name: '',
@@ -75,6 +88,14 @@ export default function MenuManagement() {
     is_available: true,
     display_order: 0
   });
+  
+  const [sizeForm, setSizeForm] = useState({
+    name: '',
+    price: '',
+    display_order: 0
+  });
+  
+  const [editingSize, setEditingSize] = useState<Size | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -119,6 +140,15 @@ export default function MenuManagement() {
 
       if (itemsError) throw itemsError;
       setMenuItems(itemsData || []);
+
+      // Fetch sizes
+      const { data: sizesData, error: sizesError } = await supabase
+        .from('sizes')
+        .select('*')
+        .order('display_order');
+
+      if (sizesError) throw sizesError;
+      setSizes(sizesData || []);
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -310,6 +340,101 @@ export default function MenuManagement() {
         variant: 'destructive',
       });
     }
+  };
+
+  // Size management functions
+  const handleSaveSize = async () => {
+    if (!selectedItemId || !sizeForm.name.trim() || !sizeForm.price) return;
+    
+    setSaving(true);
+    try {
+      const sizeData = {
+        menu_item_id: selectedItemId,
+        name: sizeForm.name,
+        price: parseFloat(sizeForm.price),
+        display_order: sizeForm.display_order
+      };
+
+      if (editingSize) {
+        // Update existing size
+        const { error } = await supabase
+          .from('sizes')
+          .update(sizeData)
+          .eq('id', editingSize.id);
+
+        if (error) throw error;
+        
+        toast({
+          title: 'تم التحديث',
+          description: 'تم تحديث الحجم بنجاح',
+        });
+      } else {
+        // Create new size
+        const { error } = await supabase
+          .from('sizes')
+          .insert([sizeData]);
+
+        if (error) throw error;
+        
+        toast({
+          title: 'تم الحفظ',
+          description: 'تم إضافة الحجم بنجاح',
+        });
+      }
+      
+      // Reset form and refresh data
+      setSizeForm({ name: '', price: '', display_order: 0 });
+      setEditingSize(null);
+      await fetchData();
+      
+    } catch (error) {
+      console.error('Error saving size:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء حفظ الحجم',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteSize = async (sizeId: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذا الحجم؟')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('sizes')
+        .delete()
+        .eq('id', sizeId);
+
+      if (error) throw error;
+      
+      toast({
+        title: 'تم الحذف',
+        description: 'تم حذف الحجم بنجاح',
+      });
+      
+      await fetchData();
+    } catch (error) {
+      console.error('Error deleting size:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء حذف الحجم',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const openSizesDialog = (itemId: string) => {
+    setSelectedItemId(itemId);
+    setShowSizesDialog(true);
+    setSizeForm({ name: '', price: '', display_order: 0 });
+    setEditingSize(null);
+  };
+
+  const getSizesForItem = (itemId: string) => {
+    return sizes.filter(size => size.menu_item_id === itemId);
   };
 
   if (authLoading || loading) {
@@ -566,34 +691,42 @@ export default function MenuManagement() {
                         {item.category_id ? categories.find(c => c.id === item.category_id)?.name : 'بدون فئة'}
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingItem(item);
-                          setItemForm({
-                            name: item.name,
-                            description: item.description || '',
-                            price: item.price.toString(),
-                            category_id: item.category_id || '',
-                            image_url: item.image_url || '',
-                            is_available: item.is_available,
-                            display_order: item.display_order
-                          });
-                          setShowItemForm(true);
-                        }}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteItem(item.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                     <div className="flex gap-2">
+                       <Button
+                         size="sm"
+                         variant="outline"
+                         onClick={() => openSizesDialog(item.id)}
+                         title="إدارة الأحجام"
+                       >
+                         <Ruler className="w-4 h-4" />
+                       </Button>
+                       <Button
+                         size="sm"
+                         variant="outline"
+                         onClick={() => {
+                           setEditingItem(item);
+                           setItemForm({
+                             name: item.name,
+                             description: item.description || '',
+                             price: item.price.toString(),
+                             category_id: item.category_id || '',
+                             image_url: item.image_url || '',
+                             is_available: item.is_available,
+                             display_order: item.display_order
+                           });
+                           setShowItemForm(true);
+                         }}
+                       >
+                         <Edit className="w-4 h-4" />
+                       </Button>
+                       <Button
+                         size="sm"
+                         variant="outline"
+                         onClick={() => handleDeleteItem(item.id)}
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </Button>
+                     </div>
                   </div>
                 ))}
               </div>
@@ -601,6 +734,105 @@ export default function MenuManagement() {
           </Card>
         </div>
       </div>
+
+      {/* Sizes Management Dialog */}
+      <Dialog open={showSizesDialog} onOpenChange={setShowSizesDialog}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>إدارة الأحجام</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Add Size Form */}
+            <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+              <div>
+                <Label htmlFor="sizeName">اسم الحجم</Label>
+                <Input
+                  id="sizeName"
+                  value={sizeForm.name}
+                  onChange={(e) => setSizeForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="مثال: صغير، وسط، كبير"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="sizePrice">السعر</Label>
+                  <Input
+                    id="sizePrice"
+                    type="number"
+                    step="0.01"
+                    value={sizeForm.price}
+                    onChange={(e) => setSizeForm(prev => ({ ...prev, price: e.target.value }))}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="sizeOrder">ترتيب العرض</Label>
+                  <Input
+                    id="sizeOrder"
+                    type="number"
+                    value={sizeForm.display_order}
+                    onChange={(e) => setSizeForm(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveSize} disabled={saving}>
+                  <Save className="w-4 h-4 ml-2" />
+                  {editingSize ? 'تحديث' : 'حفظ'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setSizeForm({ name: '', price: '', display_order: 0 });
+                    setEditingSize(null);
+                  }}
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </div>
+            
+            {/* Existing Sizes */}
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {selectedItemId && getSizesForItem(selectedItemId).map((size) => (
+                <div key={size.id} className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                  <div>
+                    <p className="font-medium">{size.name}</p>
+                    <p className="text-sm text-gray-500">{size.price} ج.م</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingSize(size);
+                        setSizeForm({
+                          name: size.name,
+                          price: size.price.toString(),
+                          display_order: size.display_order
+                        });
+                      }}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteSize(size.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {selectedItemId && getSizesForItem(selectedItemId).length === 0 && (
+                <p className="text-gray-500 text-center py-4">لا توجد أحجام مضافة بعد</p>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
