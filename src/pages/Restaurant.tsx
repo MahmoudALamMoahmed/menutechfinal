@@ -587,14 +587,13 @@ ${orderText}
                       <p className="text-gray-600 text-sm mb-2">{item.description}</p>
                     )}
                     
-                    {/* عرض السعر بدون الأحجام */}
-                    {getSizesForItem(item.id).length > 0 ? (
-                      <span className="text-sm text-gray-500 block mb-2">
+                    {/* عرض السعر الأساسي دائماً */}
+                    <span className="text-lg font-bold text-primary block mb-2">
+                      {item.price} جنيه
+                    </span>
+                    {getSizesForItem(item.id).length > 0 && (
+                      <span className="text-xs text-gray-500 block mb-1">
                         أحجام متعددة متاحة
-                      </span>
-                    ) : (
-                      <span className="text-lg font-bold text-primary block mb-2">
-                        {item.price} جنيه
                       </span>
                     )}
                   </div>
@@ -639,13 +638,13 @@ ${orderText}
                       {item.description && (
                         <p className="text-gray-600 text-sm mb-2">{item.description}</p>
                       )}
-                      {getSizesForItem(item.id).length > 0 ? (
-                        <span className="text-sm text-gray-500 block mb-2">
+                      {/* عرض السعر الأساسي دائماً */}
+                      <span className="text-lg font-bold text-primary block mb-2">
+                        {item.price} جنيه
+                      </span>
+                      {getSizesForItem(item.id).length > 0 && (
+                        <span className="text-xs text-gray-500 block mb-1">
                           أحجام متعددة متاحة
-                        </span>
-                      ) : (
-                        <span className="text-lg font-bold text-primary block mb-2">
-                          {item.price} جنيه
                         </span>
                       )}
                     </div>
