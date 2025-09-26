@@ -29,6 +29,7 @@ import {
   Instagram
 } from 'lucide-react';
 import RestaurantFooter from '@/components/RestaurantFooter';
+import ProductDetailsDialog from '@/components/ProductDetailsDialog';
 
 interface Restaurant {
   id: string;
@@ -95,6 +96,8 @@ export default function Restaurant() {
   const [customerAddress, setCustomerAddress] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
+  const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
+  const [showProductDialog, setShowProductDialog] = useState(false);
   
   const isOwner = user && restaurant && user.id === restaurant.owner_id;
 
@@ -208,6 +211,11 @@ export default function Restaurant() {
         !(cartItem.id === itemId && cartItem.selectedSize?.id === sizeId)
       );
     });
+  };
+
+  const openProductDialog = (item: MenuItem) => {
+    setSelectedProduct(item);
+    setShowProductDialog(true);
   };
 
   const getSizesForItem = (itemId: string) => {
@@ -562,7 +570,7 @@ ${orderText}
         ) : viewType === 'grid' ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredMenuItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden h-full flex flex-col">
+              <Card key={item.id} className="overflow-hidden h-full flex flex-col cursor-pointer" onClick={() => openProductDialog(item)}>
                 <CardContent className="p-4 flex-1 flex flex-col">
                   {item.image_url && (
                     <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden mb-4">
@@ -579,17 +587,11 @@ ${orderText}
                       <p className="text-gray-600 text-sm mb-2">{item.description}</p>
                     )}
                     
-                    {/* عرض الأحجام */}
+                    {/* عرض السعر بدون الأحجام */}
                     {getSizesForItem(item.id).length > 0 ? (
-                      <div className="mb-2">
-                        <p className="text-sm font-medium mb-1">الأحجام المتاحة:</p>
-                        {getSizesForItem(item.id).map((size) => (
-                          <div key={size.id} className="flex justify-between text-sm mb-1">
-                            <span>{size.name}</span>
-                            <span className="font-bold">{size.price} ج.م</span>
-                          </div>
-                        ))}
-                      </div>
+                      <span className="text-sm text-gray-500 block mb-2">
+                        أحجام متعددة متاحة
+                      </span>
                     ) : (
                       <span className="text-lg font-bold text-primary block mb-2">
                         {item.price} جنيه
@@ -597,31 +599,17 @@ ${orderText}
                     )}
                   </div>
                   <div className="mt-auto">
-                    {getSizesForItem(item.id).length > 0 ? (
-                      <Select onValueChange={(sizeId) => {
-                        const size = sizes.find(s => s.id === sizeId);
-                        if (size) addToCart(item, size);
-                      }}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="اختر الحجم" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getSizesForItem(item.id).map((size) => (
-                            <SelectItem key={size.id} value={size.id}>
-                              {size.name} - {size.price} ج.م
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => addToCart(item)}
-                      >
-                        <Plus className="w-4 h-4 ml-1" />
-                        إضافة
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openProductDialog(item);
+                      }}
+                      className="w-full"
+                    >
+                      <Plus className="w-4 h-4 ml-1" />
+                      إضافة
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -630,38 +618,20 @@ ${orderText}
         ) : (
           <div className="grid gap-4">
             {filteredMenuItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden">
+              <Card key={item.id} className="overflow-hidden cursor-pointer" onClick={() => openProductDialog(item)}>
                 <CardContent className="p-4">
                   <div className="flex flex-row-reverse items-center gap-4">
                     <div className="flex items-center gap-2">
-                      {cart.find(cartItem => cartItem.id === item.id) ? (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => removeFromCart(item.id)}
-                          >
-                            <Minus className="w-4 h-4" />
-                          </Button>
-                          <span className="font-semibold">
-                            {cart.find(cartItem => cartItem.id === item.id)?.quantity}
-                          </span>
-                          <Button
-                            size="sm"
-                            onClick={() => addToCart(item)}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => addToCart(item)}
-                        >
-                          <Plus className="w-4 h-4 ml-1" />
-                          إضافة
-                        </Button>
-                      )}
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openProductDialog(item);
+                        }}
+                      >
+                        <Plus className="w-4 h-4 ml-1" />
+                        إضافة
+                      </Button>
                     </div>
 
                     <div className="flex-1">
@@ -669,9 +639,15 @@ ${orderText}
                       {item.description && (
                         <p className="text-gray-600 text-sm mb-2">{item.description}</p>
                       )}
-                      <span className="text-lg font-bold text-primary block mb-2">
-                        {item.price} جنيه
-                      </span>
+                      {getSizesForItem(item.id).length > 0 ? (
+                        <span className="text-sm text-gray-500 block mb-2">
+                          أحجام متعددة متاحة
+                        </span>
+                      ) : (
+                        <span className="text-lg font-bold text-primary block mb-2">
+                          {item.price} جنيه
+                        </span>
+                      )}
                     </div>
 
                     {item.image_url && (
@@ -837,6 +813,15 @@ ${orderText}
 
       {/* Restaurant Footer */}
       <RestaurantFooter restaurant={restaurant} />
+      
+      {/* Product Details Dialog */}
+      <ProductDetailsDialog
+        open={showProductDialog}
+        onOpenChange={setShowProductDialog}
+        item={selectedProduct}
+        sizes={sizes}
+        onAddToCart={addToCart}
+      />
     </div>
   );
 }
