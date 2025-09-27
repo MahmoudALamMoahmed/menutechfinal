@@ -110,21 +110,28 @@ export default function ProductDetailsDialog({
                   const size = itemSizes.find(s => s.id === sizeId);
                   setSelectedSize(size || null);
                 }}
-                className="grid grid-cols-1 gap-2"
+                className="grid grid-cols-3 gap-3"
               >
                 {itemSizes.map((size) => (
-                  <div key={size.id} className="flex items-center space-x-2 space-x-reverse">
-                    <RadioGroupItem value={size.id} id={size.id} />
-                    <Label
-                      htmlFor={size.id}
-                      className="flex-1 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{size.name}</span>
-                        <span className="text-primary font-bold">{size.price} جنيه</span>
-                      </div>
-                    </Label>
-                  </div>
+                  <Label
+                    key={size.id}
+                    htmlFor={size.id}
+                    className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 text-center ${
+                      selectedSize?.id === size.id
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
+                    }`}
+                  >
+                    <RadioGroupItem 
+                      value={size.id} 
+                      id={size.id} 
+                      className="absolute top-2 right-2 w-5 h-5"
+                    />
+                    <div className="space-y-2">
+                      <div className="font-semibold text-gray-800">{size.name}</div>
+                      <div className="text-primary font-bold text-lg">{size.price} جنيه</div>
+                    </div>
+                  </Label>
                 ))}
               </RadioGroup>
             </div>
