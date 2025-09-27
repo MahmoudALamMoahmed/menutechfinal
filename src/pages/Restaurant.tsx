@@ -459,19 +459,19 @@ ${orderText}
                     <h3 className="font-semibold text-lg text-gray-800 mb-1">{item.name}</h3>
                     {item.description && <p className="text-gray-600 text-sm mb-2">{item.description}</p>}
                     
-                    {/* عرض السعر الأساسي دائماً */}
-                    <span className="text-lg font-bold text-primary block mb-2">
-                      {item.price} جنيه
-                    </span>
-                  </div>
-                  <div className="mt-auto">
-                    <Button size="sm" onClick={e => {
-                e.stopPropagation();
-                openProductDialog(item);
-              }} className="w-full">
-                      <Plus className="w-4 h-4 ml-1" />
-                      إضافة
-                    </Button>
+                    {/* السعر والزر في نفس السطر */}
+                    <div className="flex items-center justify-between gap-2 mt-auto">
+                      <span className="text-lg font-bold text-primary">
+                        {item.price} جنيه
+                      </span>
+                      <Button size="sm" onClick={e => {
+                  e.stopPropagation();
+                  openProductDialog(item);
+                }} className="px-2 py-1 text-xs h-7">
+                        <Plus className="w-3 h-3 ml-1" />
+                        إضافة
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>)}
