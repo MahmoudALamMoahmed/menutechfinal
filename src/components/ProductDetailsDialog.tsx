@@ -140,7 +140,7 @@ export default function ProductDetailsDialog({
           {/* الكمية */}
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium">الكمية:</p>
-            <div className="flex items-center space-x-4 space-x-reverse">
+            <div className="flex items-center justify-center space-x-4 space-x-reverse">
               <Button
                 variant="outline"
                 size="icon"
