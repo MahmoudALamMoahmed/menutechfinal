@@ -592,11 +592,6 @@ ${orderText}
                     <span className="text-lg font-bold text-primary block mb-2">
                       {item.price} جنيه
                     </span>
-                    {getSizesForItem(item.id).length > 0 && (
-                      <span className="text-xs text-gray-500 block mb-1">
-                        أحجام متعددة متاحة
-                      </span>
-                    )}
                   </div>
                   <div className="mt-auto">
                     <Button
@@ -643,11 +638,6 @@ ${orderText}
                       <span className="text-lg font-bold text-primary block mb-2">
                         {item.price} جنيه
                       </span>
-                      {getSizesForItem(item.id).length > 0 && (
-                        <span className="text-xs text-gray-500 block mb-1">
-                          أحجام متعددة متاحة
-                        </span>
-                      )}
                     </div>
 
                     {item.image_url && (
