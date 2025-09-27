@@ -457,11 +457,11 @@ ${orderText}
                     </div>}
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg text-gray-800 mb-1">{item.name}</h3>
-                    {item.description && <p className="text-gray-600 text-sm mb-2">{item.description}</p>}
+                    {item.description && <p className="text-gray-600 text-sm sm:text-sm text-xs mb-2">{item.description}</p>}
                     
                     {/* السعر والزر في نفس السطر */}
                     <div className="flex items-center justify-between gap-2 mt-auto">
-                      <span className="text-lg font-bold text-primary">
+                      <span className="text-base sm:text-lg font-bold text-primary">
                         {item.price} جنيه
                       </span>
                       <Button size="sm" onClick={e => {
