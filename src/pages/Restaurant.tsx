@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Home, ShoppingCart, User, Plus, Minus, Phone, MapPin, Clock, Share2, Settings, LayoutGrid, List, Facebook, Instagram, MessageCircle } from 'lucide-react';
+import { Home, ShoppingCart, User, Plus, Minus, Phone, MapPin, Clock, Share2, Settings, LayoutGrid, List, Facebook, Instagram, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import RestaurantFooter from '@/components/RestaurantFooter';
 import ProductDetailsDialog from '@/components/ProductDetailsDialog';
 interface Restaurant {
@@ -84,6 +84,10 @@ export default function Restaurant() {
   const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [showProductDialog, setShowProductDialog] = useState(false);
+  const categoriesRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+
   const isOwner = user && restaurant && user.id === restaurant.owner_id;
   useEffect(() => {
     if (username) {
@@ -131,6 +135,65 @@ export default function Restaurant() {
       setLoading(false);
     }
   };
+
+  // وظائف التحكم في التمرير للفئات
+  const checkArrows = () => {
+    if (categoriesRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = categoriesRef.current;
+      setShowLeftArrow(scrollLeft > 0);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  const scrollCategories = (direction: 'left' | 'right') => {
+    if (categoriesRef.current) {
+      const scrollAmount = 200;
+      const newScrollLeft = direction === 'left' 
+        ? categoriesRef.current.scrollLeft - scrollAmount
+        : categoriesRef.current.scrollLeft + scrollAmount;
+      
+      categoriesRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // وظائف السحب بالماوس
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!categoriesRef.current) return;
+    
+    const startX = e.pageX - categoriesRef.current.offsetLeft;
+    const scrollLeft = categoriesRef.current.scrollLeft;
+    let isDragging = false;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!categoriesRef.current) return;
+      isDragging = true;
+      const x = e.pageX - categoriesRef.current.offsetLeft;
+      const walk = (x - startX) * 2;
+      categoriesRef.current.scrollLeft = scrollLeft - walk;
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      if (isDragging) {
+        setTimeout(() => { isDragging = false; }, 100);
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // التحقق من الأسهم عند تحميل الفئات
+  useEffect(() => {
+    if (categories.length > 0) {
+      setTimeout(checkArrows, 100);
+    }
+  }, [categories]);
+
   const addToCart = (item: MenuItem, selectedSize?: Size) => {
     const cartItem = {
       ...item,
@@ -420,13 +483,41 @@ ${orderText}
              {/* التصنيفات */}
       {categories.length > 0 && <div className="bg-white border-b">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex gap-2 overflow-x-auto">
-              <Button variant={activeCategory === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory('all')}>
-                الكل
-              </Button>
-              {categories.map(category => <Button key={category.id} variant={activeCategory === category.id ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory(category.id)}>
-                  {category.name}
-                </Button>)}
+            <div className="relative">
+              {/* السهم الأيسر */}
+              {showLeftArrow && (
+                <button
+                  onClick={() => scrollCategories('left')}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 border"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              )}
+              
+              {/* السهم الأيمن */}
+              {showRightArrow && (
+                <button
+                  onClick={() => scrollCategories('right')}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 border"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+              
+              {/* الفئات */}
+              <div 
+                ref={categoriesRef}
+                onScroll={checkArrows}
+                onMouseDown={handleMouseDown}
+                className="flex gap-2 overflow-x-hidden scroll-smooth categories-container drag-scroll"
+              >
+                <Button variant={activeCategory === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory('all')}>
+                  الكل
+                </Button>
+                {categories.map(category => <Button key={category.id} variant={activeCategory === category.id ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory(category.id)}>
+                    {category.name}
+                  </Button>)}
+              </div>
             </div>
           </div>
         </div>}

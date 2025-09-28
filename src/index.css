@@ -144,4 +144,24 @@ All colors MUST be HSL.
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary-light));
   }
+
+  /* Hide scrollbar for categories container */
+  .categories-container::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .categories-container {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  /* Drag scrolling styles */
+  .drag-scroll {
+    cursor: grab;
+    user-select: none;
+  }
+  
+  .drag-scroll:active {
+    cursor: grabbing;
+  }
 }
