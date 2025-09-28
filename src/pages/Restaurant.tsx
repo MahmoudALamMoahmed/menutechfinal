@@ -512,17 +512,17 @@ ${orderText}
                     </div>}
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg text-gray-800 mb-1">{item.name}</h3>
-                    {item.description && <p className="text-gray-600 text-sm sm:text-sm text-xs mb-2">{item.description}</p>}
+                    {item.description && <p className="text-gray-600 text-xs sm:text-sm mb-2">{item.description}</p>}
                     
                     {/* السعر والزر في نفس السطر */}
                     <div className="flex items-center justify-between gap-2 mt-auto">
-                      <span className="text-base sm:text-lg font-bold text-primary">
+                      <span className="text-sm sm:text-lg font-bold text-primary">
                         {item.price} جنيه
                       </span>
                       <Button size="sm" onClick={e => {
                   e.stopPropagation();
                   openProductDialog(item);
-                }} className="px-2 py-1 text-xs h-7">
+                }} className="px-1 py-0.5 text-xs h-6 sm:px-2 sm:py-1 sm:h-7">
                         <Plus className="w-3 h-3 ml-1" />
                         إضافة
                       </Button>
@@ -538,17 +538,17 @@ ${orderText}
                       <Button size="sm" onClick={e => {
                   e.stopPropagation();
                   openProductDialog(item);
-                }}>
-                        <Plus className="w-4 h-4 ml-1" />
+                }} className="px-1 py-0.5 text-xs h-6 sm:px-3 sm:py-2 sm:h-9 sm:text-sm">
+                        <Plus className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
                         إضافة
                       </Button>
                     </div>
 
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg text-gray-800 mb-1">{item.name}</h3>
-                      {item.description && <p className="text-gray-600 text-sm mb-2">{item.description}</p>}
+                      {item.description && <p className="text-gray-600 text-xs sm:text-sm mb-2">{item.description}</p>}
                       {/* عرض السعر الأساسي دائماً */}
-                      <span className="text-lg font-bold text-primary block mb-2">
+                      <span className="text-sm sm:text-lg font-bold text-primary block mb-2">
                         {item.price} جنيه
                       </span>
                     </div>
