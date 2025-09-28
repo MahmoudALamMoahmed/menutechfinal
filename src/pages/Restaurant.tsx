@@ -416,35 +416,36 @@ ${orderText}
         </div>
       </div>
 
-        {/* Categories */}
+      {/* Categories */}
              {/* التصنيفات */}
       {categories.length > 0 && <div className="bg-white border-b">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex gap-2 overflow-x-auto">
-                <Button variant={activeCategory === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory('all')}>
-                  الكل
-                </Button>
-                {categories.map(category => <Button key={category.id} variant={activeCategory === category.id ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory(category.id)}>
-                    {category.name}
-                  </Button>)}
-              </div>
-
-              {/* تبديل طريقة العرض */}
-              <div className="flex gap-2">
-                <button onClick={() => setViewType("list")} className={`p-3 border rounded-md transition ${viewType === "list" ? "bg-primary text-white border-black" : "bg-white text-black border-black"}`}>
-                  <List className="w-5 h-5 stroke-[1.5]" />
-                </button>
-                <button onClick={() => setViewType("grid")} className={`p-3 border rounded-md transition ${viewType === "grid" ? "bg-primary text-white border-black" : "bg-white text-black border-black"}`}>
-                  <LayoutGrid className="w-5 h-5 stroke-[1.5]" />
-                </button>
-              </div>
-
+            <div className="flex gap-2 overflow-x-auto">
+              <Button variant={activeCategory === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory('all')}>
+                الكل
+              </Button>
+              {categories.map(category => <Button key={category.id} variant={activeCategory === category.id ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory(category.id)}>
+                  {category.name}
+                </Button>)}
             </div>
           </div>
         </div>}
 
      {/* Menu Items */}
+      {/* أزرار تغيير طريقة العرض */}
+      <div className="bg-white border-b">
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setViewType("list")} className={`p-3 border rounded-md transition ${viewType === "list" ? "bg-primary text-white border-black" : "bg-white text-black border-black"}`}>
+              <List className="w-5 h-5 stroke-[1.5]" />
+            </button>
+            <button onClick={() => setViewType("grid")} className={`p-3 border rounded-md transition ${viewType === "grid" ? "bg-primary text-white border-black" : "bg-white text-black border-black"}`}>
+              <LayoutGrid className="w-5 h-5 stroke-[1.5]" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* عناصر المنيو */}
       <div className="container mx-auto px-4 py-6 pb-32">
         {filteredMenuItems.length === 0 ? <div className="text-center py-12">
