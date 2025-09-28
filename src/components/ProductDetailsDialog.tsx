@@ -97,7 +97,7 @@ export default function ProductDetailsDialog({
             </div> : null}
           
           {/* الكمية */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center gap-6">
             <p className="text-sm font-medium">الكمية :</p>
             <div className="flex items-center justify-center space-x-4 space-x-reverse">
               <Button variant="outline" size="icon" onClick={decreaseQuantity} disabled={quantity <= 1}>
