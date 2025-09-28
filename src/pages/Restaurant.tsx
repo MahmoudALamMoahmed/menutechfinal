@@ -87,7 +87,6 @@ export default function Restaurant() {
   const categoriesRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
-
   const isOwner = user && restaurant && user.id === restaurant.owner_id;
   useEffect(() => {
     if (username) {
@@ -139,24 +138,23 @@ export default function Restaurant() {
   // وظائف التحكم في التمرير للفئات
   const checkArrows = () => {
     if (categoriesRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = categoriesRef.current;
+      const {
+        scrollLeft,
+        scrollWidth,
+        clientWidth
+      } = categoriesRef.current;
       setShowLeftArrow(scrollLeft > 5);
       setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5);
     }
   };
-
   const scrollCategories = (direction: 'left' | 'right') => {
     if (categoriesRef.current) {
       const scrollAmount = 150;
-      const newScrollLeft = direction === 'left' 
-        ? categoriesRef.current.scrollLeft - scrollAmount
-        : categoriesRef.current.scrollLeft + scrollAmount;
-      
+      const newScrollLeft = direction === 'left' ? categoriesRef.current.scrollLeft - scrollAmount : categoriesRef.current.scrollLeft + scrollAmount;
       categoriesRef.current.scrollTo({
         left: newScrollLeft,
         behavior: 'smooth'
       });
-      
       setTimeout(checkArrows, 300);
     }
   };
@@ -164,25 +162,20 @@ export default function Restaurant() {
   // وظائف السحب بالماوس المحسنة
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!categoriesRef.current) return;
-    
     e.preventDefault();
     const startX = e.pageX - categoriesRef.current.offsetLeft;
     const scrollLeft = categoriesRef.current.scrollLeft;
     let isDragging = false;
-
     const handleMouseMove = (e: MouseEvent) => {
       if (!categoriesRef.current) return;
-      
       const x = e.pageX - categoriesRef.current.offsetLeft;
       const walk = (x - startX) * 1.5; // تحسين السرعة
       categoriesRef.current.scrollLeft = scrollLeft - walk;
-      
       if (!isDragging) {
         isDragging = true;
         categoriesRef.current.style.cursor = 'grabbing';
       }
     };
-
     const handleMouseUp = () => {
       if (categoriesRef.current) {
         categoriesRef.current.style.cursor = 'grab';
@@ -191,7 +184,6 @@ export default function Restaurant() {
       document.removeEventListener('mouseup', handleMouseUp);
       setTimeout(checkArrows, 100);
     };
-
     categoriesRef.current.style.cursor = 'grabbing';
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
@@ -202,18 +194,15 @@ export default function Restaurant() {
     if (categories.length > 0) {
       const timer = setTimeout(() => {
         checkArrows();
-        
+
         // إضافة listener لتغيير الحجم
         const handleResize = () => checkArrows();
         window.addEventListener('resize', handleResize);
-        
         return () => window.removeEventListener('resize', handleResize);
       }, 100);
-      
       return () => clearTimeout(timer);
     }
   }, [categories]);
-
   const addToCart = (item: MenuItem, selectedSize?: Size) => {
     const cartItem = {
       ...item,
@@ -441,60 +430,27 @@ ${orderText}
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-center gap-4">
             {/* Phone Contact */}
-            {restaurant.phone && (
-              <a 
-                href={`tel:${restaurant.phone}`} 
-                className="w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors flex items-center justify-center group"
-              >
+            {restaurant.phone && <a href={`tel:${restaurant.phone}`} className="w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors flex items-center justify-center group">
                 <Phone className="w-5 h-5 text-white" />
-              </a>
-            )}
+              </a>}
             
             {/* WhatsApp */}
-            {restaurant.whatsapp_phone && (
-              <a 
-                href={`https://wa.me/${restaurant.whatsapp_phone}`} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="w-12 h-12 rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center group"
-              >
+            {restaurant.whatsapp_phone && <a href={`https://wa.me/${restaurant.whatsapp_phone}`} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center group">
                 <MessageCircle className="w-5 h-5 text-white" />
-              </a>
-            )}
+              </a>}
             
             {/* TikTok */}
-            <a 
-              href="#" 
-              className="w-12 h-12 rounded-full bg-gray-900 hover:bg-gray-800 transition-colors flex items-center justify-center group"
-            >
-              <div className="w-5 h-5 text-white font-bold text-xs flex items-center justify-center">
-                TT
-              </div>
-            </a>
+            
             
             {/* Instagram */}
-            {restaurant.instagram_url && (
-              <a 
-                href={restaurant.instagram_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 transition-all duration-300 flex items-center justify-center group"
-              >
+            {restaurant.instagram_url && <a href={restaurant.instagram_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 transition-all duration-300 flex items-center justify-center group">
                 <Instagram className="w-5 h-5 text-white" />
-              </a>
-            )}
+              </a>}
             
             {/* Facebook */}
-            {restaurant.facebook_url && (
-              <a 
-                href={restaurant.facebook_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center group"
-              >
+            {restaurant.facebook_url && <a href={restaurant.facebook_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center group">
                 <Facebook className="w-5 h-5 text-white" />
-              </a>
-            )}
+              </a>}
           </div>
         </div>
       </div>
@@ -505,33 +461,19 @@ ${orderText}
           <div className="container mx-auto px-4 py-4">
             <div className="relative">
               {/* السهم الأيسر */}
-              <button
-                onClick={() => scrollCategories('left')}
-                className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white shadow-md rounded-full p-2 border transition-all duration-200 ${
-                  showLeftArrow ? 'opacity-70 hover:opacity-100' : 'opacity-0 pointer-events-none'
-                }`}
-              >
+              <button onClick={() => scrollCategories('left')} className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white shadow-md rounded-full p-2 border transition-all duration-200 ${showLeftArrow ? 'opacity-70 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}>
                 <ChevronLeft className="w-4 h-4" />
               </button>
               
               {/* السهم الأيمن */}
-              <button
-                onClick={() => scrollCategories('right')}
-                className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white shadow-md rounded-full p-2 border transition-all duration-200 ${
-                  showRightArrow ? 'opacity-70 hover:opacity-100' : 'opacity-0 pointer-events-none'
-                }`}
-              >
+              <button onClick={() => scrollCategories('right')} className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white shadow-md rounded-full p-2 border transition-all duration-200 ${showRightArrow ? 'opacity-70 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}>
                 <ChevronRight className="w-4 h-4" />
               </button>
               
               {/* الفئات */}
-              <div 
-                ref={categoriesRef}
-                onScroll={checkArrows}
-                onMouseDown={handleMouseDown}
-                className="flex gap-2 overflow-x-hidden scroll-smooth categories-container select-none px-8"
-                style={{ cursor: 'grab' }}
-              >
+              <div ref={categoriesRef} onScroll={checkArrows} onMouseDown={handleMouseDown} className="flex gap-2 overflow-x-hidden scroll-smooth categories-container select-none px-8" style={{
+            cursor: 'grab'
+          }}>
                 <Button variant={activeCategory === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory('all')}>
                   الكل
                 </Button>
