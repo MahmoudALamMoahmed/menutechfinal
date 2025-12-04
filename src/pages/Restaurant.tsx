@@ -252,84 +252,6 @@ ${orderText}
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-800">{restaurant.name}</h1>
           <div className="flex items-center gap-2">
-            {cart.length > 0 && <Dialog open={showCartDialog} onOpenChange={setShowCartDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="relative">
-                    <ShoppingCart className="w-4 h-4 ml-2" />
-                    سلة الطلبات
-                    <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs">
-                      {cart.length}
-                    </Badge>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col" dir="rtl">
-                  <DialogHeader>
-                    <DialogTitle>سلة الطلبات</DialogTitle>
-                  </DialogHeader>
-                  
-                  <div className="space-y-4 flex-1 overflow-hidden">
-                    {/* عرض عناصر السلة */}
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {cart.map(item => <div key={`${item.id}-${item.selectedSize?.id || 'no-size'}`} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                          <div className="flex-1">
-                            <div className="font-medium">{item.name}</div>
-                            {item.selectedSize && <div className="text-xs text-gray-500">
-                                الحجم: {item.selectedSize.name}
-                              </div>}
-                            <div className="text-sm text-gray-600">
-                              {item.price} جنيه × {item.quantity}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button size="sm" variant="outline" onClick={() => removeFromCart(item.id, item.selectedSize?.id)}>
-                              <Minus className="w-3 h-3" />
-                            </Button>
-                            <span className="font-medium">{item.quantity}</span>
-                            <Button size="sm" onClick={() => addToCart(item, item.selectedSize)}>
-                              <Plus className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>)}
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div className="text-lg font-bold text-center">
-                      الإجمالي: {getTotalPrice()} جنيه
-                    </div>
-                    
-                    <div className="text-sm text-center text-gray-600">
-                      طريقة الدفع: الدفع عند الاستلام
-                    </div>
-                    
-                    <Separator />
-                    
-                    {/* بيانات التوصيل */}
-                    <div className="space-y-3">
-                      <h3 className="font-medium">بيانات التوصيل</h3>
-                      
-                      <div>
-                        <Label htmlFor="customerName">اسم العميل</Label>
-                        <Input id="customerName" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="أدخل اسمك" />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="customerAddress">عنوان التوصيل</Label>
-                        <Textarea id="customerAddress" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} placeholder="أدخل عنوان التوصيل بالتفصيل" rows={3} />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="customerPhone">رقم العميل</Label>
-                        <Input id="customerPhone" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="أدخل رقم هاتفك" type="tel" />
-                      </div>
-                    </div>
-                    
-                    <Button onClick={sendOrderToWhatsApp} className="w-full" disabled={!customerName || !customerAddress || !customerPhone}>
-                      إرسال الطلب واتساب
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>}
             
             {isOwner && <Button variant="outline" size="sm" onClick={() => navigate(`/${username}/dashboard`)}>
                 <Settings className="w-4 h-4 ml-2" />
@@ -568,11 +490,11 @@ ${orderText}
           </div>
           
           {/* Red Cart at the far left */}
-          {cart.length > 0 && <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+          {/* {cart.length > 0 && <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
               <Badge className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                 {cart.reduce((total, item) => total + item.quantity, 0)} عنصر
               </Badge>
-            </div>}
+            </div>} */}
         </div>
       </div>
 
