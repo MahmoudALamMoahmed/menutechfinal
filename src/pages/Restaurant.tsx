@@ -362,7 +362,7 @@ ${orderText}
               </Card>)}
           </div> : <div className="grid gap-4">
             {filteredMenuItems.map(item => <Card key={item.id} className="overflow-hidden cursor-pointer" onClick={() => openProductDialog(item)}>
-                <CardContent className="p-4">
+                <CardContent className="p-2">
                   <div className="flex flex-row-reverse items-center gap-4">
                     <div className="flex items-center gap-2">
                       <Button size="sm" onClick={e => {
