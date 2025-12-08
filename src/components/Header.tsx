@@ -61,7 +61,7 @@ const Header = () => {
                   disabled={!username}
                   className="font-cairo"
                 >
-                  إدارة مطعمك
+                 الدخول لمطعمك
                 </Button>
                 <Button variant="outline" onClick={handleSignOut}>
                   <LogOut className="w-4 h-4 ml-1" />
@@ -132,7 +132,7 @@ const Header = () => {
                       }}
                       disabled={!username}
                     >
-                      إدارة مطعمك
+                      الدخول لمطعمك
                     </Button>
                     <Button
                       variant="outline"

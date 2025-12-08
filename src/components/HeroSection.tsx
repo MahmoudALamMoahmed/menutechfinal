@@ -33,7 +33,7 @@ const HeroSection = () => {
             </p>
 
             {/* Stats */}
-            <div className="flex justify-center lg:justify-end gap-8 text-white">
+            <div className="flex justify-center gap-8 text-white">
               <div className="text-center">
                 <div className="font-cairo font-bold text-2xl">+500</div>
                 <div className="font-tajawal text-sm opacity-80">مطعم يثق بنا</div>
@@ -49,7 +49,7 @@ const HeroSection = () => {
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-end">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
                 className="bg-secondary text-black hover:bg-secondary/90 font-cairo font-semibold text-lg px-8 py-6 rounded-2xl shadow-glow transition-all duration-300 hover:scale-105"
