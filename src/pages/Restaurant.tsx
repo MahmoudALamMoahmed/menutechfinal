@@ -340,7 +340,7 @@ ${orderText}
                       <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                     </div>}
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg text-gray-800 mb-1">{item.name}</h3>
+                    <h3 className="font-semibold text-sm sm:text-lg text-gray-800 mb-2">{item.name}</h3>
                     {item.description && <p className="hidden sm:block text-gray-600 text-sm mb-2">{item.description}</p>}
                     
                     {/* عرض السعر الأساسي دائماً */}
@@ -375,7 +375,7 @@ ${orderText}
                     </div>
 
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg text-gray-800 mb-1">{item.name}</h3>
+                      <h3 className="font-semibold text-sm sm:text-lg text-gray-800 mb-1">{item.name}</h3>
                       {item.description && <p className="hidden sm:block text-gray-600 text-sm mb-2">{item.description}</p>}
                       {/* عرض السعر الأساسي دائماً */}
                       <span className="text-sm font-bold text-primary block mb-2 sm:text-lg">
