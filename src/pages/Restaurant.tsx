@@ -188,7 +188,7 @@ export default function Restaurant() {
       // تحضير رسالة الواتساب
       const orderText = cart.map(item => {
         const sizeText = item.selectedSize ? ` (${item.selectedSize.name})` : '';
-        return `${item.name}${sizeText} x${item.quantity} = ${item.price * item.quantity} جنيه`;
+        return `${item.quantity} - ${item.name}${sizeText} = ${item.price * item.quantity}`;
       }).join('\n');
       const message = `🛒 طلب جديد من ${restaurant.name}
 
