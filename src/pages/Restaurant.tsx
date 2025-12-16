@@ -391,7 +391,7 @@ ${orderText}
                   {item.image_url && <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden mb-4">
                       <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                     </div>}
-                  <div className="flex-1">
+                  <div className="p-2 flex-1">
                     <h3 className="font-semibold text-sm sm:text-lg text-gray-800 mb-2">{item.name}</h3>
                     {item.description && <p className="hidden sm:block text-gray-600 text-sm mb-2">{item.description}</p>}
                     
