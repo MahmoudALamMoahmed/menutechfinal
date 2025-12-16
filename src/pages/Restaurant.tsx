@@ -340,7 +340,7 @@ ${orderText}
        {/* Categories */}
              {/* التصنيفات */}
        {categories.length > 0 && <div className="bg-white border-b">
-          <div className="container mx-auto px-4 py-4">
+          <div className="container mx-auto py-4">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex gap-2 overflow-x-auto px-10 pb-3 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 scroll-smooth">
                 <Button variant={activeCategory === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory('all')}>
