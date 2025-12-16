@@ -382,7 +382,7 @@ ${orderText}
 
      {/* Menu Items */}
       {/* عناصر المنيو */}
-      <div className="container mx-auto px-4 py-6 pb-32">
+      <div className="container mx-auto px-4 pb-32">
         {filteredMenuItems.length === 0 ? <div className="text-center py-12">
             <p className="text-gray-600">لا توجد عناصر في القائمة حالياً</p>
           </div> : viewType === 'grid' ? <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
