@@ -130,6 +130,7 @@ All colors MUST be HSL.
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
+    height: 6px; /* تصغير السمك */
   }
 
   ::-webkit-scrollbar-track {
