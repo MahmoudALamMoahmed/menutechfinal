@@ -317,17 +317,6 @@ ${orderText}
                 <span>{restaurant.address}</span>
               </div>
             )} */}
-            {restaurant.facebook_url && (
-              <a 
-                href={restaurant.facebook_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                <Facebook className="w-4 h-4" />
-                <span>فيسبوك</span>
-              </a>
-            )}
           </div>
         </div>
       </div>
