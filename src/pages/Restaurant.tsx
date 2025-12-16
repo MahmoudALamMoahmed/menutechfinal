@@ -339,53 +339,21 @@ ${orderText}
 
        {/* Categories */}
              {/* التصنيفات */}
-       {categories.length > 0 && (
-      <div className="bg-white border-b relative">
-        <div className="container mx-auto px-4 py-3 flex items-center gap-2 relative">
-          
-          {/* زر السهم لليسار */}
-          <button
-            onClick={() => scrollCategories("left")}
-            className="p-2 bg-white shadow rounded-full absolute right-0 top-1/2 -translate-y-1/2 z-10"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          {/* قائمة الفئات */}
-          <div
-            ref={categoriesRef}
-            className="flex gap-2 overflow-x-auto px-10 pb-3 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 scroll-smooth"
-          >
-            <Button
-              variant={activeCategory === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveCategory("all")}
-            >
-              الكل
-            </Button>
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={activeCategory === category.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveCategory(category.id)}
-              >
-                {category.name}
-              </Button>
-            ))}
+       {categories.length > 0 && <div className="bg-white border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex gap-2 overflow-x-auto px-10 pb-3 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 scroll-smooth">
+                <Button variant={activeCategory === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory('all')}>
+                  الكل
+                </Button>
+                {categories.map(category => <Button key={category.id} variant={activeCategory === category.id ? 'default' : 'outline'} size="sm" onClick={() => setActiveCategory(category.id)}>
+                    {category.name}
+                  </Button>)}
+              </div>
+            </div>
           </div>
-
-          {/* زر السهم لليمين */}
-          <button
-            onClick={() => scrollCategories("right")}
-            className="p-2 bg-white shadow rounded-full absolute left-0 top-1/2 -translate-y-1/2 z-10"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-
-    )}
+          </div>
+        }
 
 
        {/* تبديل طريقة العرض */}
