@@ -63,6 +63,16 @@ interface CartItem extends MenuItem {
   quantity: number;
   selectedSize?: Size;
 }
+interface Branch {
+  id: string;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  whatsapp_phone: string | null;
+  delivery_phone: string | null;
+  working_hours: string | null;
+  is_active: boolean;
+}
 export default function Restaurant() {
   const {
     username
@@ -90,7 +100,9 @@ export default function Restaurant() {
   const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [showProductDialog, setShowProductDialog] = useState(false);
-   const categoriesRef = useRef<HTMLDivElement | null>(null);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState<string>('');
+  const categoriesRef = useRef<HTMLDivElement | null>(null);
 
   const isOwner = user && restaurant && user.id === restaurant.owner_id;
 
@@ -139,6 +151,12 @@ export default function Restaurant() {
         data: sizesData
       } = await supabase.from('sizes').select('*').order('display_order');
       setSizes(sizesData || []);
+
+      // جلب الفروع
+      const {
+        data: branchesData
+      } = await supabase.from('branches').select('*').eq('restaurant_id', restaurantData.id).eq('is_active', true).order('display_order');
+      setBranches(branchesData || []);
     } catch (error) {
       console.error('Error fetching restaurant data:', error);
       toast({
@@ -201,15 +219,41 @@ export default function Restaurant() {
   };
   const sendOrderToWhatsApp = async () => {
     if (cart.length === 0 || !customerName || !customerAddress || !customerPhone || !restaurant) return;
+    
+    // إذا كان هناك فروع ولم يتم اختيار فرع
+    if (branches.length > 0 && !selectedBranch) {
+      toast({
+        title: 'اختر الفرع',
+        description: 'يرجى اختيار الفرع الذي تريد الطلب منه',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       const totalPrice = getTotalPrice();
+      
+      // تحديد رقم الواتساب المناسب
+      let whatsappNumber = restaurant.whatsapp_phone;
+      let branchName = '';
+      
+      if (branches.length > 0 && selectedBranch) {
+        const branch = branches.find(b => b.id === selectedBranch);
+        if (branch?.whatsapp_phone) {
+          whatsappNumber = branch.whatsapp_phone;
+          branchName = branch.name;
+        }
+      }
 
       // تحضير رسالة الواتساب
       const orderText = cart.map(item => {
         const sizeText = item.selectedSize ? ` (${item.selectedSize.name})` : '';
         return `${item.quantity} - ${item.name}${sizeText} = ${item.price * item.quantity} جنيه`;
       }).join('\n');
-      const message = `🛒 طلب جديد من ${restaurant.name}
+      
+      const branchText = branchName ? `\n🏪 الفرع: ${branchName}` : '';
+      
+      const message = `🛒 طلب جديد من ${restaurant.name}${branchText}
 
 👤 بيانات العميل:
 الاسم: ${customerName}
@@ -226,7 +270,7 @@ ${orderText}
 شكراً لكم.`;
 
       // إرسال الرسالة عبر الواتساب
-      const whatsappUrl = `https://wa.me/${restaurant.whatsapp_phone}?text=${encodeURIComponent(message)}`;
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
 
       // إفراغ السلة وإغلاق النافذة
@@ -235,6 +279,7 @@ ${orderText}
       setCustomerName('');
       setCustomerAddress('');
       setCustomerPhone('');
+      setSelectedBranch('');
       toast({
         title: 'تم إرسال الطلب',
         description: 'تم إرسال طلبك عبر واتساب بنجاح'
@@ -525,6 +570,25 @@ ${orderText}
                     <div className="space-y-3">
                       <h3 className="font-medium">بيانات التوصيل</h3>
 
+                      {/* اختيار الفرع إذا كان هناك فروع */}
+                      {branches.length > 0 && (
+                        <div>
+                          <Label htmlFor="branch">اختر الفرع</Label>
+                          <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                            <SelectTrigger className="bg-background">
+                              <SelectValue placeholder="اختر الفرع الذي تريد الطلب منه" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background z-50">
+                              {branches.map(branch => (
+                                <SelectItem key={branch.id} value={branch.id}>
+                                  {branch.name} {branch.address ? `- ${branch.address}` : ''}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
                       <div>
                         <Label htmlFor="customerName">اسم العميل</Label>
                         <Input id="customerName" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="أدخل اسمك" />
@@ -541,7 +605,7 @@ ${orderText}
                       </div>
                     </div>
 
-                    <Button onClick={sendOrderToWhatsApp} className="w-full" disabled={!customerName || !customerAddress || !customerPhone}>
+                    <Button onClick={sendOrderToWhatsApp} className="w-full" disabled={!customerName || !customerAddress || !customerPhone || (branches.length > 0 && !selectedBranch)}>
                       إرسال الطلب واتساب
                     </Button>
                   </div>
