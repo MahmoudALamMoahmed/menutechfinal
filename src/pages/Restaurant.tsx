@@ -16,9 +16,11 @@ import { Home, ShoppingCart, User, Plus, Minus, Phone, MapPin, Clock, Share2, Se
   Facebook,
   Instagram,
   ChevronRight,
-  ChevronLeft } from 'lucide-react';
+  ChevronLeft,
+  Building2 } from 'lucide-react';
 import RestaurantFooter from '@/components/RestaurantFooter';
 import ProductDetailsDialog from '@/components/ProductDetailsDialog';
+import BranchesDialog from '@/components/BranchesDialog';
 interface Restaurant {
   id: string;
   name: string;
@@ -303,8 +305,20 @@ ${orderText}
               </div>
             )} */}
             
-            {/* Social Media Icons */}
+            {/* Social Media & Contact Icons */}
             <div className="flex items-center gap-2">
+              {/* أيقونة الفروع والتواصل */}
+              <BranchesDialog 
+                restaurantId={restaurant.id}
+                trigger={
+                  <button 
+                    className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-primary hover:text-white transition-colors duration-200"
+                  >
+                    <Building2 className="w-4 h-4" />
+                  </button>
+                }
+              />
+
               {restaurant.facebook_url && (
                 <a 
                   href={restaurant.facebook_url}

@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      branches: {
+        Row: {
+          address: string | null
+          created_at: string
+          delivery_phone: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          restaurant_id: string
+          updated_at: string
+          whatsapp_phone: string | null
+          working_hours: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          delivery_phone?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          restaurant_id: string
+          updated_at?: string
+          whatsapp_phone?: string | null
+          working_hours?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          delivery_phone?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          restaurant_id?: string
+          updated_at?: string
+          whatsapp_phone?: string | null
+          working_hours?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branches_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { 
   MapPin, 
   Phone, 
@@ -6,8 +7,10 @@ import {
   Clock,
   Facebook,
   Instagram,
-  Truck
+  Truck,
+  Building2
 } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
 
 interface Restaurant {
   id: string;
@@ -23,11 +26,45 @@ interface Restaurant {
   working_hours: string;
 }
 
+interface Branch {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  whatsapp_phone: string;
+  delivery_phone: string;
+  working_hours: string;
+}
+
 interface RestaurantFooterProps {
   restaurant: Restaurant;
 }
 
 export default function RestaurantFooter({ restaurant }: RestaurantFooterProps) {
+  const [branches, setBranches] = useState<Branch[]>([]);
+
+  useEffect(() => {
+    if (restaurant?.id) {
+      fetchBranches();
+    }
+  }, [restaurant?.id]);
+
+  const fetchBranches = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('branches')
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .eq('is_active', true)
+        .order('display_order');
+
+      if (error) throw error;
+      setBranches(data || []);
+    } catch (error) {
+      console.error('Error fetching branches:', error);
+    }
+  };
+
   return (
     <footer className="bg-gray-900 text-white mt-12" dir="rtl">
       {/* Main Footer */}
@@ -49,117 +86,167 @@ export default function RestaurantFooter({ restaurant }: RestaurantFooterProps) 
                 <span className="text-gray-300">{restaurant.working_hours}</span>
               </div>
             )}
-          </div>
-
-          {/* Contact Numbers */}
-          <div className="space-y-4">
-            <h4 className="font-bold text-lg">أرقام التواصل</h4>
-            <div className="space-y-3">
-              {restaurant.delivery_phone && (
-                <div className="flex items-center gap-3">
-                  <Truck className="w-5 h-5 text-primary" />
-                  <div>
-                    <div className="text-sm text-gray-400">طلبات الدليفري</div>
-                    <a 
-                      href={`tel:${restaurant.delivery_phone}`}
-                      className="text-gray-300 hover:text-primary transition-colors"
-                    >
-                      {restaurant.delivery_phone}
-                    </a>
-                  </div>
-                </div>
+            
+            {/* Social Links */}
+            <div className="flex gap-4 mt-4">
+              {restaurant.facebook_url && (
+                <a 
+                  href={restaurant.facebook_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors duration-200"
+                >
+                  <Facebook className="w-5 h-5" />
+                </a>
               )}
               
-              {restaurant.whatsapp_phone && (
-                <div className="flex items-center gap-3">
-                  <MessageCircle className="w-5 h-5 text-success" />
-                  <div>
-                    <div className="text-sm text-gray-400">واتساب</div>
-                    <a 
-                      href={`https://wa.me/${restaurant.whatsapp_phone.replace(/\D/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-300 hover:text-success transition-colors"
-                    >
-                      {restaurant.whatsapp_phone}
-                    </a>
-                  </div>
-                </div>
-              )}
-
-              {restaurant.phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-accent" />
-                  <div>
-                    <div className="text-sm text-gray-400">الهاتف الرئيسي</div>
-                    <a 
-                      href={`tel:${restaurant.phone}`}
-                      className="text-gray-300 hover:text-accent transition-colors"
-                    >
-                      {restaurant.phone}
-                    </a>
-                  </div>
-                </div>
-              )}
-
-              {restaurant.complaints_phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-destructive" />
-                  <div>
-                    <div className="text-sm text-gray-400">الشكاوي</div>
-                    <a 
-                      href={`tel:${restaurant.complaints_phone}`}
-                      className="text-gray-300 hover:text-destructive transition-colors"
-                    >
-                      {restaurant.complaints_phone}
-                    </a>
-                  </div>
-                </div>
+              {restaurant.instagram_url && (
+                <a 
+                  href={restaurant.instagram_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-pink-600 transition-colors duration-200"
+                >
+                  <Instagram className="w-5 h-5" />
+                </a>
               )}
             </div>
           </div>
 
-          {/* Digital Contact */}
-          <div className="space-y-4">
-            <h4 className="font-bold text-lg">التواصل الرقمي</h4>
-            <div className="space-y-3">
-              {restaurant.email && (
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-primary" />
-                  <a 
-                    href={`mailto:${restaurant.email}`}
-                    className="text-gray-300 hover:text-primary transition-colors"
-                  >
-                    {restaurant.email}
-                  </a>
-                </div>
-              )}
+          {/* Branches Section */}
+          {branches.length > 0 && (
+            <div className="lg:col-span-2 space-y-4">
+              <h4 className="font-bold text-lg flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-primary" />
+                فروعنا
+              </h4>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {branches.map((branch) => (
+                  <div key={branch.id} className="bg-gray-800 rounded-lg p-4 space-y-2">
+                    <h5 className="font-bold text-primary">{branch.name}</h5>
+                    
+                    {branch.address && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-300">{branch.address}</span>
+                      </div>
+                    )}
+                    
+                    {branch.working_hours && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <Clock className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-300">{branch.working_hours}</span>
+                      </div>
+                    )}
 
-              <div className="flex gap-4 mt-4">
-                {restaurant.facebook_url && (
-                  <a 
-                    href={restaurant.facebook_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors duration-200"
-                  >
-                    <Facebook className="w-5 h-5" />
-                  </a>
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      {branch.delivery_phone && (
+                        <a 
+                          href={`tel:${branch.delivery_phone}`}
+                          className="flex items-center gap-1 text-sm text-gray-300 hover:text-primary transition-colors"
+                        >
+                          <Truck className="w-4 h-4" />
+                          {branch.delivery_phone}
+                        </a>
+                      )}
+                      
+                      {branch.whatsapp_phone && (
+                        <a 
+                          href={`https://wa.me/${branch.whatsapp_phone.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-sm text-gray-300 hover:text-green-500 transition-colors"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          واتساب
+                        </a>
+                      )}
+
+                      {branch.phone && (
+                        <a 
+                          href={`tel:${branch.phone}`}
+                          className="flex items-center gap-1 text-sm text-gray-300 hover:text-accent transition-colors"
+                        >
+                          <Phone className="w-4 h-4" />
+                          {branch.phone}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Contact Info - Show if no branches */}
+          {branches.length === 0 && (
+            <div className="space-y-4">
+              <h4 className="font-bold text-lg">أرقام التواصل</h4>
+              <div className="space-y-3">
+                {restaurant.delivery_phone && (
+                  <div className="flex items-center gap-3">
+                    <Truck className="w-5 h-5 text-primary" />
+                    <div>
+                      <div className="text-sm text-gray-400">طلبات الدليفري</div>
+                      <a 
+                        href={`tel:${restaurant.delivery_phone}`}
+                        className="text-gray-300 hover:text-primary transition-colors"
+                      >
+                        {restaurant.delivery_phone}
+                      </a>
+                    </div>
+                  </div>
                 )}
                 
-                {restaurant.instagram_url && (
-                  <a 
-                    href={restaurant.instagram_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-pink-600 transition-colors duration-200"
-                  >
-                    <Instagram className="w-5 h-5" />
-                  </a>
+                {restaurant.whatsapp_phone && (
+                  <div className="flex items-center gap-3">
+                    <MessageCircle className="w-5 h-5 text-green-500" />
+                    <div>
+                      <div className="text-sm text-gray-400">واتساب</div>
+                      <a 
+                        href={`https://wa.me/${restaurant.whatsapp_phone.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-300 hover:text-green-500 transition-colors"
+                      >
+                        {restaurant.whatsapp_phone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {restaurant.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-5 h-5 text-accent" />
+                    <div>
+                      <div className="text-sm text-gray-400">الهاتف الرئيسي</div>
+                      <a 
+                        href={`tel:${restaurant.phone}`}
+                        className="text-gray-300 hover:text-accent transition-colors"
+                      >
+                        {restaurant.phone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {restaurant.complaints_phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-5 h-5 text-destructive" />
+                    <div>
+                      <div className="text-sm text-gray-400">الشكاوي</div>
+                      <a 
+                        href={`tel:${restaurant.complaints_phone}`}
+                        className="text-gray-300 hover:text-destructive transition-colors"
+                      >
+                        {restaurant.complaints_phone}
+                      </a>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
-          </div>
+          )}
 
           {/* Additional Info */}
           <div className="space-y-4">
@@ -169,6 +256,18 @@ export default function RestaurantFooter({ restaurant }: RestaurantFooterProps) 
               <p>جميع أطباقنا طازجة ومحضرة يومياً</p>
               <p>نلتزم بأعلى معايير النظافة والجودة</p>
             </div>
+            
+            {restaurant.email && (
+              <div className="flex items-center gap-3 pt-2">
+                <Mail className="w-5 h-5 text-primary" />
+                <a 
+                  href={`mailto:${restaurant.email}`}
+                  className="text-gray-300 hover:text-primary transition-colors text-sm"
+                >
+                  {restaurant.email}
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>

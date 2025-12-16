@@ -18,7 +18,8 @@ import {
   ShoppingBag,
   ArrowLeft,
   Save,
-  Eye
+  Eye,
+  Building2
 } from 'lucide-react';
 
 interface Restaurant {
@@ -390,6 +391,15 @@ export default function Dashboard() {
                 >
                   <Settings className="w-4 h-4 ml-2" />
                   إدارة الفوتر
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  disabled={!restaurant}
+                  onClick={() => restaurant && navigate(`/${restaurant.username}/branches-management`)}
+                >
+                  <Building2 className="w-4 h-4 ml-2" />
+                  إدارة الفروع
                 </Button>
                 <Button 
                   variant="outline" 
