@@ -251,6 +251,7 @@ ${orderText}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-800">{restaurant.name}</h1>
+          {restaurant.description && <p className="text-sm opacity-90">{restaurant.description}</p>}
           <div className="flex items-center gap-2">
             
             {isOwner && <Button variant="outline" size="sm" onClick={() => navigate(`/${username}/dashboard`)}>
@@ -289,11 +290,11 @@ ${orderText}
                 <span>{restaurant.address}</span>
               </div>
              )} */}
-            {restaurant.facebook_url && <a href={restaurant.facebook_url} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-600 hover:text-blue-800 transition-colors">
-                <Facebook className="w-5 h-5" />
+            {restaurant.facebook_url && <a href={restaurant.facebook_url} target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center">
+                <Facebook className="w-4 h-4" />
               </a>}
-            {restaurant.instagram_url && <a href={restaurant.instagram_url} target="_blank" rel="noopener noreferrer" className="flex items-center text-pink-600 hover:text-pink-800 transition-colors">
-                <Instagram className="w-5 h-5" />
+            {restaurant.instagram_url && <a href={restaurant.instagram_url} target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center">
+                <Instagram className="w-4 h-4" />
               </a>}
             
           </div>
