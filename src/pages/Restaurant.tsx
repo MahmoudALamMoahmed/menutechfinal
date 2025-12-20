@@ -59,9 +59,15 @@ interface Category {
   name: string;
   display_order: number;
 }
+interface Extra {
+  id: string;
+  name: string;
+  price: number;
+}
 interface CartItem extends MenuItem {
   quantity: number;
   selectedSize?: Size;
+  selectedExtras?: Extra[];
 }
 interface Branch {
   id: string;
@@ -90,6 +96,7 @@ export default function Restaurant() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [sizes, setSizes] = useState<Size[]>([]);
+  const [extras, setExtras] = useState<Extra[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -152,6 +159,12 @@ export default function Restaurant() {
       } = await supabase.from('sizes').select('*').order('display_order');
       setSizes(sizesData || []);
 
+      // جلب الإضافات
+      const {
+        data: extrasData
+      } = await supabase.from('extras').select('*').eq('restaurant_id', restaurantData.id).eq('is_available', true).order('display_order');
+      setExtras(extrasData || []);
+
       // جلب الفروع
       const {
         data: branchesData
@@ -168,31 +181,39 @@ export default function Restaurant() {
       setLoading(false);
     }
   };
-  const addToCart = (item: MenuItem, selectedSize?: Size) => {
+  const addToCart = (item: MenuItem, selectedSize?: Size, selectedExtras?: Extra[]) => {
+    const extrasTotal = selectedExtras?.reduce((sum, e) => sum + e.price, 0) || 0;
+    const basePrice = selectedSize ? selectedSize.price : item.price;
     const cartItem = {
       ...item,
       selectedSize,
-      // إذا كان هناك حجم محدد، استخدم سعر الحجم، وإلا استخدم السعر الافتراضي
-      price: selectedSize ? selectedSize.price : item.price
+      selectedExtras,
+      price: basePrice + extrasTotal
     };
     setCart(prev => {
-      // البحث عن نفس الصنف بنفس الحجم
-      const existingItem = prev.find(cartItem => cartItem.id === item.id && cartItem.selectedSize?.id === selectedSize?.id);
+      // البحث عن نفس الصنف بنفس الحجم والإضافات
+      const extrasKey = selectedExtras?.map(e => e.id).sort().join(',') || '';
+      const existingItem = prev.find(ci => 
+        ci.id === item.id && 
+        ci.selectedSize?.id === selectedSize?.id &&
+        (ci.selectedExtras?.map(e => e.id).sort().join(',') || '') === extrasKey
+      );
       if (existingItem) {
-        return prev.map(cartItem => cartItem.id === item.id && cartItem.selectedSize?.id === selectedSize?.id ? {
-          ...cartItem,
-          quantity: cartItem.quantity + 1
-        } : cartItem);
+        return prev.map(ci => 
+          ci.id === item.id && 
+          ci.selectedSize?.id === selectedSize?.id &&
+          (ci.selectedExtras?.map(e => e.id).sort().join(',') || '') === extrasKey
+            ? { ...ci, quantity: ci.quantity + 1 }
+            : ci
+        );
       }
-      return [...prev, {
-        ...cartItem,
-        quantity: 1
-      }];
+      return [...prev, { ...cartItem, quantity: 1 }];
     });
     const sizeText = selectedSize ? ` - ${selectedSize.name}` : '';
+    const extrasText = selectedExtras && selectedExtras.length > 0 ? ` + ${selectedExtras.map(e => e.name).join(', ')}` : '';
     toast({
       title: 'تم إضافة العنصر',
-      description: `تم إضافة ${item.name}${sizeText} إلى السلة`
+      description: `تم إضافة ${item.name}${sizeText}${extrasText} إلى السلة`
     });
   };
   const removeFromCart = (itemId: string, sizeId?: string) => {
@@ -248,7 +269,10 @@ export default function Restaurant() {
       // تحضير رسالة الواتساب
       const orderText = cart.map(item => {
         const sizeText = item.selectedSize ? ` (${item.selectedSize.name})` : '';
-        return `${item.quantity} - ${item.name}${sizeText} = ${item.price * item.quantity} جنيه`;
+        const extrasText = item.selectedExtras && item.selectedExtras.length > 0 
+          ? ` + ${item.selectedExtras.map(e => e.name).join(', ')}` 
+          : '';
+        return `${item.quantity} - ${item.name}${sizeText}${extrasText} = ${item.price * item.quantity} جنيه`;
       }).join('\n');
       
       const branchText = branchName ? `\n🏪 الفرع: ${branchName}` : '';
@@ -633,6 +657,6 @@ ${orderText}
       <RestaurantFooter restaurant={restaurant} />
       
       {/* Product Details Dialog */}
-      <ProductDetailsDialog open={showProductDialog} onOpenChange={setShowProductDialog} item={selectedProduct} sizes={sizes} onAddToCart={addToCart} />
+      <ProductDetailsDialog open={showProductDialog} onOpenChange={setShowProductDialog} item={selectedProduct} sizes={sizes} extras={extras} onAddToCart={addToCart} />
     </div>;
 }

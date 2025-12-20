@@ -16,7 +16,8 @@ import {
   Edit,
   Trash2,
   Save,
-  Ruler
+  Ruler,
+  Cookie
 } from 'lucide-react';
 
 interface Restaurant {
@@ -53,6 +54,15 @@ interface Size {
   display_order: number;
 }
 
+interface Extra {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  price: number;
+  is_available: boolean;
+  display_order: number;
+}
+
 export default function MenuManagement() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
@@ -63,6 +73,7 @@ export default function MenuManagement() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [sizes, setSizes] = useState<Size[]>([]);
+  const [extras, setExtras] = useState<Extra[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -70,6 +81,7 @@ export default function MenuManagement() {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showItemForm, setShowItemForm] = useState(false);
   const [showSizesDialog, setShowSizesDialog] = useState(false);
+  const [showExtrasDialog, setShowExtrasDialog] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -95,7 +107,14 @@ export default function MenuManagement() {
     display_order: 0
   });
   
+  const [extraForm, setExtraForm] = useState({
+    name: '',
+    price: '',
+    display_order: 0
+  });
+  
   const [editingSize, setEditingSize] = useState<Size | null>(null);
+  const [editingExtra, setEditingExtra] = useState<Extra | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -149,6 +168,16 @@ export default function MenuManagement() {
 
       if (sizesError) throw sizesError;
       setSizes(sizesData || []);
+
+      // Fetch extras
+      const { data: extrasData, error: extrasError } = await supabase
+        .from('extras')
+        .select('*')
+        .eq('restaurant_id', restaurantData.id)
+        .order('display_order');
+
+      if (extrasError) throw extrasError;
+      setExtras(extrasData || []);
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -435,6 +464,88 @@ export default function MenuManagement() {
 
   const getSizesForItem = (itemId: string) => {
     return sizes.filter(size => size.menu_item_id === itemId);
+  };
+
+  // Extras management functions
+  const handleSaveExtra = async () => {
+    if (!restaurant || !extraForm.name.trim() || !extraForm.price) return;
+    
+    setSaving(true);
+    try {
+      const extraData = {
+        restaurant_id: restaurant.id,
+        name: extraForm.name,
+        price: parseFloat(extraForm.price),
+        display_order: extraForm.display_order,
+        is_available: true
+      };
+
+      if (editingExtra) {
+        const { error } = await supabase
+          .from('extras')
+          .update(extraData)
+          .eq('id', editingExtra.id);
+
+        if (error) throw error;
+        
+        toast({
+          title: 'تم التحديث',
+          description: 'تم تحديث الإضافة بنجاح',
+        });
+      } else {
+        const { error } = await supabase
+          .from('extras')
+          .insert([extraData]);
+
+        if (error) throw error;
+        
+        toast({
+          title: 'تم الحفظ',
+          description: 'تم إضافة الإضافة بنجاح',
+        });
+      }
+      
+      setExtraForm({ name: '', price: '', display_order: 0 });
+      setEditingExtra(null);
+      await fetchData();
+      
+    } catch (error) {
+      console.error('Error saving extra:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء حفظ الإضافة',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteExtra = async (extraId: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذه الإضافة؟')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('extras')
+        .delete()
+        .eq('id', extraId);
+
+      if (error) throw error;
+      
+      toast({
+        title: 'تم الحذف',
+        description: 'تم حذف الإضافة بنجاح',
+      });
+      
+      await fetchData();
+    } catch (error) {
+      console.error('Error deleting extra:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء حذف الإضافة',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (authLoading || loading) {
@@ -732,6 +843,35 @@ export default function MenuManagement() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Extras Management */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>إدارة الإضافات</CardTitle>
+                  <CardDescription>أضف إضافات اختيارية للوجبات (جبنة إضافية، صوص، إلخ)</CardDescription>
+                </div>
+                <Button onClick={() => setShowExtrasDialog(true)}>
+                  <Cookie className="w-4 h-4 ml-2" />
+                  إدارة الإضافات
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {extras.map((extra) => (
+                  <div key={extra.id} className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
+                    <span className="font-medium">{extra.name}</span>
+                    <span className="text-sm text-green-600">+{extra.price} ج.م</span>
+                  </div>
+                ))}
+                {extras.length === 0 && (
+                  <p className="text-gray-500">لا توجد إضافات بعد</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -828,6 +968,105 @@ export default function MenuManagement() {
               ))}
               {selectedItemId && getSizesForItem(selectedItemId).length === 0 && (
                 <p className="text-gray-500 text-center py-4">لا توجد أحجام مضافة بعد</p>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Extras Management Dialog */}
+      <Dialog open={showExtrasDialog} onOpenChange={setShowExtrasDialog}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>إدارة الإضافات</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Add Extra Form */}
+            <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+              <div>
+                <Label htmlFor="extraName">اسم الإضافة</Label>
+                <Input
+                  id="extraName"
+                  value={extraForm.name}
+                  onChange={(e) => setExtraForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="مثال: جبنة موتزاريلا، صوص حار"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="extraPrice">السعر الإضافي</Label>
+                  <Input
+                    id="extraPrice"
+                    type="number"
+                    step="0.01"
+                    value={extraForm.price}
+                    onChange={(e) => setExtraForm(prev => ({ ...prev, price: e.target.value }))}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="extraOrder">ترتيب العرض</Label>
+                  <Input
+                    id="extraOrder"
+                    type="number"
+                    value={extraForm.display_order}
+                    onChange={(e) => setExtraForm(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveExtra} disabled={saving}>
+                  <Save className="w-4 h-4 ml-2" />
+                  {editingExtra ? 'تحديث' : 'حفظ'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setExtraForm({ name: '', price: '', display_order: 0 });
+                    setEditingExtra(null);
+                  }}
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </div>
+            
+            {/* Existing Extras */}
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {extras.map((extra) => (
+                <div key={extra.id} className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                  <div>
+                    <p className="font-medium">{extra.name}</p>
+                    <p className="text-sm text-green-600">+{extra.price} ج.م</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingExtra(extra);
+                        setExtraForm({
+                          name: extra.name,
+                          price: extra.price.toString(),
+                          display_order: extra.display_order
+                        });
+                      }}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteExtra(extra.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {extras.length === 0 && (
+                <p className="text-gray-500 text-center py-4">لا توجد إضافات بعد</p>
               )}
             </div>
           </div>
