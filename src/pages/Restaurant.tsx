@@ -216,16 +216,27 @@ export default function Restaurant() {
       description: `تم إضافة ${item.name}${sizeText}${extrasText} إلى السلة`
     });
   };
-  const removeFromCart = (itemId: string, sizeId?: string) => {
+  const removeFromCart = (itemId: string, sizeId?: string, extrasKey?: string) => {
     setCart(prev => {
-      const existingItem = prev.find(cartItem => cartItem.id === itemId && cartItem.selectedSize?.id === sizeId);
+      const existingItem = prev.find(cartItem => 
+        cartItem.id === itemId && 
+        cartItem.selectedSize?.id === sizeId &&
+        (cartItem.selectedExtras?.map(e => e.id).sort().join(',') || '') === (extrasKey || '')
+      );
       if (existingItem && existingItem.quantity > 1) {
-        return prev.map(cartItem => cartItem.id === itemId && cartItem.selectedSize?.id === sizeId ? {
-          ...cartItem,
-          quantity: cartItem.quantity - 1
-        } : cartItem);
+        return prev.map(cartItem => 
+          cartItem.id === itemId && 
+          cartItem.selectedSize?.id === sizeId &&
+          (cartItem.selectedExtras?.map(e => e.id).sort().join(',') || '') === (extrasKey || '')
+            ? { ...cartItem, quantity: cartItem.quantity - 1 }
+            : cartItem
+        );
       }
-      return prev.filter(cartItem => !(cartItem.id === itemId && cartItem.selectedSize?.id === sizeId));
+      return prev.filter(cartItem => !(
+        cartItem.id === itemId && 
+        cartItem.selectedSize?.id === sizeId &&
+        (cartItem.selectedExtras?.map(e => e.id).sort().join(',') || '') === (extrasKey || '')
+      ));
     });
   };
   const openProductDialog = (item: MenuItem) => {
@@ -557,26 +568,38 @@ ${orderText}
                   <div className="overflow-y-auto flex-1 space-y-4 pr-2 pl-2 max-h-[calc(90vh-100px)]">
                     {/* عناصر السلة */}
                     <div className="space-y-2">
-                       {cart.map(item => <div key={`${item.id}-${item.selectedSize?.id || 'no-size'}`} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                           <div className="flex-1">
-                             <div className="font-medium">{item.name}</div>
-                             {item.selectedSize && <div className="text-xs text-gray-500">
-                                 الحجم: {item.selectedSize.name}
-                               </div>}
-                             <div className="text-sm text-gray-600">
-                               {item.price} جنيه × {item.quantity}
+                       {cart.map(item => {
+                         const extrasKey = item.selectedExtras?.map(e => e.id).sort().join(',') || '';
+                         return (
+                           <div key={`${item.id}-${item.selectedSize?.id || 'no-size'}-${extrasKey}`} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                             <div className="flex-1">
+                               <div className="font-medium">
+                                 {item.name}
+                                 {item.selectedExtras && item.selectedExtras.length > 0 && (
+                                   <span className="text-xs text-primary mr-1">
+                                     + {item.selectedExtras.map(e => e.name).join(', ')}
+                                   </span>
+                                 )}
+                               </div>
+                               {item.selectedSize && <div className="text-xs text-gray-500">
+                                   الحجم: {item.selectedSize.name}
+                                 </div>}
+                               <div className="text-sm text-gray-600">
+                                 {item.price} جنيه × {item.quantity}
+                               </div>
+                             </div>
+                             <div className="flex items-center gap-2">
+                               <Button size="sm" variant="outline" onClick={() => removeFromCart(item.id, item.selectedSize?.id, extrasKey)}>
+                                 <Minus className="w-3 h-3" />
+                               </Button>
+                               <span className="font-medium">{item.quantity}</span>
+                               <Button size="sm" onClick={() => addToCart(item, item.selectedSize, item.selectedExtras)}>
+                                 <Plus className="w-3 h-3" />
+                               </Button>
                              </div>
                            </div>
-                           <div className="flex items-center gap-2">
-                             <Button size="sm" variant="outline" onClick={() => removeFromCart(item.id, item.selectedSize?.id)}>
-                               <Minus className="w-3 h-3" />
-                             </Button>
-                             <span className="font-medium">{item.quantity}</span>
-                             <Button size="sm" onClick={() => addToCart(item, item.selectedSize)}>
-                               <Plus className="w-3 h-3" />
-                             </Button>
-                           </div>
-                         </div>)}
+                         );
+                       })}
                     </div>
 
                     <Separator />
