@@ -79,6 +79,13 @@ interface Branch {
   working_hours: string | null;
   is_active: boolean;
 }
+interface DeliveryArea {
+  id: string;
+  branch_id: string;
+  name: string;
+  delivery_price: number;
+  is_active: boolean;
+}
 export default function Restaurant() {
   const {
     username
@@ -108,7 +115,9 @@ export default function Restaurant() {
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [showProductDialog, setShowProductDialog] = useState(false);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [deliveryAreas, setDeliveryAreas] = useState<DeliveryArea[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
+  const [selectedArea, setSelectedArea] = useState<string>('');
   const categoriesRef = useRef<HTMLDivElement | null>(null);
 
   const isOwner = user && restaurant && user.id === restaurant.owner_id;
@@ -170,6 +179,18 @@ export default function Restaurant() {
         data: branchesData
       } = await supabase.from('branches').select('*').eq('restaurant_id', restaurantData.id).eq('is_active', true).order('display_order');
       setBranches(branchesData || []);
+
+      // جلب مناطق التوصيل
+      const branchIds = (branchesData || []).map(b => b.id);
+      if (branchIds.length > 0) {
+        const { data: areasData } = await supabase
+          .from('delivery_areas')
+          .select('*')
+          .in('branch_id', branchIds)
+          .eq('is_active', true)
+          .order('display_order');
+        setDeliveryAreas(areasData || []);
+      }
     } catch (error) {
       console.error('Error fetching restaurant data:', error);
       toast({
@@ -249,6 +270,20 @@ export default function Restaurant() {
   const getTotalPrice = () => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   };
+
+  const getDeliveryPrice = () => {
+    if (!selectedArea) return 0;
+    const area = deliveryAreas.find(a => a.id === selectedArea);
+    return area?.delivery_price || 0;
+  };
+
+  const getAreasForBranch = (branchId: string) => {
+    return deliveryAreas.filter(area => area.branch_id === branchId);
+  };
+
+  const getFinalTotal = () => {
+    return getTotalPrice() + getDeliveryPrice();
+  };
   const sendOrderToWhatsApp = async () => {
     if (cart.length === 0 || !customerName || !customerAddress || !customerPhone || !restaurant) return;
     
@@ -262,18 +297,38 @@ export default function Restaurant() {
       return;
     }
 
+    // إذا كان هناك مناطق للفرع المختار ولم يتم اختيار منطقة
+    if (selectedBranch && getAreasForBranch(selectedBranch).length > 0 && !selectedArea) {
+      toast({
+        title: 'اختر المنطقة',
+        description: 'يرجى اختيار منطقة التوصيل',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       const totalPrice = getTotalPrice();
+      const deliveryPrice = getDeliveryPrice();
+      const finalTotal = getFinalTotal();
       
       // تحديد رقم الواتساب المناسب
       let whatsappNumber = restaurant.whatsapp_phone;
       let branchName = '';
+      let areaName = '';
       
       if (branches.length > 0 && selectedBranch) {
         const branch = branches.find(b => b.id === selectedBranch);
         if (branch?.whatsapp_phone) {
           whatsappNumber = branch.whatsapp_phone;
           branchName = branch.name;
+        }
+      }
+
+      if (selectedArea) {
+        const area = deliveryAreas.find(a => a.id === selectedArea);
+        if (area) {
+          areaName = area.name;
         }
       }
 
@@ -287,8 +342,10 @@ export default function Restaurant() {
       }).join('\n');
       
       const branchText = branchName ? `\n🏪 الفرع: ${branchName}` : '';
+      const areaText = areaName ? `\n📍 المنطقة: ${areaName}` : '';
+      const deliveryText = deliveryPrice > 0 ? `\n🚗 سعر التوصيل: ${deliveryPrice} جنيه` : '';
       
-      const message = `🛒 طلب جديد من ${restaurant.name}${branchText}
+      const message = `🛒 طلب جديد من ${restaurant.name}${branchText}${areaText}
 
 👤 بيانات العميل:
 الاسم: ${customerName}
@@ -298,7 +355,8 @@ export default function Restaurant() {
 📋 تفاصيل الطلب:
 ${orderText}
 
-💰 الإجمالي: ${totalPrice} جنيه
+💰 إجمالي الطلب: ${totalPrice} جنيه${deliveryText}
+💵 الإجمالي الكلي: ${finalTotal} جنيه
 💳 طريقة الدفع: الدفع عند الاستلام
 
 الرجاء تأكيد استلام الطلب.
@@ -315,6 +373,7 @@ ${orderText}
       setCustomerAddress('');
       setCustomerPhone('');
       setSelectedBranch('');
+      setSelectedArea('');
       toast({
         title: 'تم إرسال الطلب',
         description: 'تم إرسال طلبك عبر واتساب بنجاح'
@@ -604,8 +663,21 @@ ${orderText}
 
                     <Separator />
 
-                    <div className="text-lg font-bold text-center">
-                      الإجمالي: {getTotalPrice()} جنيه
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>إجمالي الطلب:</span>
+                        <span>{getTotalPrice()} جنيه</span>
+                      </div>
+                      {getDeliveryPrice() > 0 && (
+                        <div className="flex justify-between text-sm text-primary">
+                          <span>سعر التوصيل:</span>
+                          <span>{getDeliveryPrice()} جنيه</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-lg font-bold border-t pt-2">
+                        <span>الإجمالي الكلي:</span>
+                        <span>{getFinalTotal()} جنيه</span>
+                      </div>
                     </div>
 
                     <div className="text-sm text-center text-gray-600">
@@ -621,7 +693,13 @@ ${orderText}
                       {branches.length > 0 && (
                         <div>
                           <Label htmlFor="branch">اختر الفرع</Label>
-                          <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                          <Select 
+                            value={selectedBranch} 
+                            onValueChange={(value) => {
+                              setSelectedBranch(value);
+                              setSelectedArea(''); // إعادة تعيين المنطقة عند تغيير الفرع
+                            }}
+                          >
                             <SelectTrigger className="bg-background">
                               <SelectValue placeholder="اختر الفرع الذي تريد الطلب منه" />
                             </SelectTrigger>
@@ -629,6 +707,25 @@ ${orderText}
                               {branches.map(branch => (
                                 <SelectItem key={branch.id} value={branch.id}>
                                   {branch.name} {branch.address ? `- ${branch.address}` : ''}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      {/* اختيار المنطقة إذا كان الفرع المختار لديه مناطق */}
+                      {selectedBranch && getAreasForBranch(selectedBranch).length > 0 && (
+                        <div>
+                          <Label htmlFor="area">اختر منطقة التوصيل</Label>
+                          <Select value={selectedArea} onValueChange={setSelectedArea}>
+                            <SelectTrigger className="bg-background">
+                              <SelectValue placeholder="اختر المنطقة" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background z-50">
+                              {getAreasForBranch(selectedBranch).map(area => (
+                                <SelectItem key={area.id} value={area.id}>
+                                  {area.name} - {area.delivery_price} جنيه توصيل
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -652,7 +749,17 @@ ${orderText}
                       </div>
                     </div>
 
-                    <Button onClick={sendOrderToWhatsApp} className="w-full" disabled={!customerName || !customerAddress || !customerPhone || (branches.length > 0 && !selectedBranch)}>
+                    <Button 
+                      onClick={sendOrderToWhatsApp} 
+                      className="w-full" 
+                      disabled={
+                        !customerName || 
+                        !customerAddress || 
+                        !customerPhone || 
+                        (branches.length > 0 && !selectedBranch) ||
+                        (selectedBranch && getAreasForBranch(selectedBranch).length > 0 && !selectedArea)
+                      }
+                    >
                       إرسال الطلب واتساب
                     </Button>
                   </div>
