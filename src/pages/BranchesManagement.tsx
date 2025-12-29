@@ -16,7 +16,8 @@ import {
   Save,
   MapPin,
   Phone,
-  Building2
+  Building2,
+  Navigation
 } from 'lucide-react';
 import {
   Dialog,
@@ -25,6 +26,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+
+interface DeliveryArea {
+  id: string;
+  branch_id: string;
+  name: string;
+  delivery_price: number;
+  is_active: boolean;
+  display_order: number;
+}
 
 interface Branch {
   id: string;
@@ -53,6 +63,7 @@ export default function BranchesManagement() {
   
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [deliveryAreas, setDeliveryAreas] = useState<DeliveryArea[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
@@ -66,6 +77,13 @@ export default function BranchesManagement() {
     working_hours: '',
     is_active: true
   });
+  
+  // إدارة المناطق
+  const [showAreasDialog, setShowAreasDialog] = useState(false);
+  const [selectedBranchForAreas, setSelectedBranchForAreas] = useState<Branch | null>(null);
+  const [areaForm, setAreaForm] = useState({ name: '', delivery_price: 0 });
+  const [editingArea, setEditingArea] = useState<DeliveryArea | null>(null);
+  const [savingArea, setSavingArea] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -104,6 +122,17 @@ export default function BranchesManagement() {
 
       if (branchesError) throw branchesError;
       setBranches(branchesData || []);
+
+      // جلب مناطق التوصيل لجميع الفروع
+      const branchIds = (branchesData || []).map(b => b.id);
+      if (branchIds.length > 0) {
+        const { data: areasData } = await supabase
+          .from('delivery_areas')
+          .select('*')
+          .in('branch_id', branchIds)
+          .order('display_order');
+        setDeliveryAreas(areasData || []);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -242,6 +271,114 @@ export default function BranchesManagement() {
     } catch (error) {
       console.error('Error toggling branch status:', error);
     }
+  };
+
+  // دوال إدارة المناطق
+  const openAreasDialog = (branch: Branch) => {
+    setSelectedBranchForAreas(branch);
+    setShowAreasDialog(true);
+  };
+
+  const resetAreaForm = () => {
+    setAreaForm({ name: '', delivery_price: 0 });
+    setEditingArea(null);
+  };
+
+  const getBranchAreas = (branchId: string) => {
+    return deliveryAreas.filter(area => area.branch_id === branchId);
+  };
+
+  const handleSaveArea = async () => {
+    if (!selectedBranchForAreas || !areaForm.name.trim()) {
+      toast({
+        title: 'خطأ',
+        description: 'يرجى إدخال اسم المنطقة',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSavingArea(true);
+
+    try {
+      if (editingArea) {
+        const { error } = await supabase
+          .from('delivery_areas')
+          .update({ 
+            name: areaForm.name, 
+            delivery_price: areaForm.delivery_price 
+          })
+          .eq('id', editingArea.id);
+
+        if (error) throw error;
+
+        toast({
+          title: 'تم التحديث',
+          description: 'تم تحديث بيانات المنطقة بنجاح',
+        });
+      } else {
+        const branchAreas = getBranchAreas(selectedBranchForAreas.id);
+        const { error } = await supabase
+          .from('delivery_areas')
+          .insert([{
+            branch_id: selectedBranchForAreas.id,
+            name: areaForm.name,
+            delivery_price: areaForm.delivery_price,
+            display_order: branchAreas.length
+          }]);
+
+        if (error) throw error;
+
+        toast({
+          title: 'تم الإضافة',
+          description: 'تم إضافة المنطقة بنجاح',
+        });
+      }
+
+      resetAreaForm();
+      fetchData();
+    } catch (error) {
+      console.error('Error saving area:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء حفظ البيانات',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingArea(false);
+    }
+  };
+
+  const handleDeleteArea = async (areaId: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذه المنطقة؟')) return;
+
+    try {
+      const { error } = await supabase
+        .from('delivery_areas')
+        .delete()
+        .eq('id', areaId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'تم الحذف',
+        description: 'تم حذف المنطقة بنجاح',
+      });
+
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting area:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء حذف المنطقة',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const openEditArea = (area: DeliveryArea) => {
+    setEditingArea(area);
+    setAreaForm({ name: area.name, delivery_price: area.delivery_price });
   };
 
   if (authLoading || loading) {
@@ -428,7 +565,24 @@ export default function BranchesManagement() {
                     </div>
                   )}
                   
+                  {/* عرض عدد المناطق */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <Navigation className="w-4 h-4 text-green-500" />
+                    <span className="text-gray-600">
+                      {getBranchAreas(branch.id).length} مناطق توصيل
+                    </span>
+                  </div>
+                  
                   <div className="flex gap-2 pt-2 border-t">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => openAreasDialog(branch)}
+                    >
+                      <Navigation className="w-4 h-4 ml-1" />
+                      المناطق
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -452,6 +606,107 @@ export default function BranchesManagement() {
           </div>
         )}
       </div>
+
+      {/* Dialog إدارة مناطق التوصيل */}
+      <Dialog open={showAreasDialog} onOpenChange={(open) => {
+        setShowAreasDialog(open);
+        if (!open) {
+          resetAreaForm();
+          setSelectedBranchForAreas(null);
+        }
+      }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>
+              مناطق التوصيل - {selectedBranchForAreas?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* نموذج إضافة/تعديل منطقة */}
+            <Card>
+              <CardContent className="pt-4 space-y-3">
+                <h4 className="font-medium">
+                  {editingArea ? 'تعديل المنطقة' : 'إضافة منطقة جديدة'}
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>اسم المنطقة</Label>
+                    <Input
+                      value={areaForm.name}
+                      onChange={(e) => setAreaForm(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="مثال: المعادي"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>سعر التوصيل (جنيه)</Label>
+                    <Input
+                      type="number"
+                      value={areaForm.delivery_price}
+                      onChange={(e) => setAreaForm(prev => ({ ...prev, delivery_price: Number(e.target.value) }))}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleSaveArea}
+                    disabled={savingArea}
+                    className="flex-1"
+                  >
+                    {savingArea ? 'جاري الحفظ...' : (editingArea ? 'تحديث' : 'إضافة')}
+                  </Button>
+                  {editingArea && (
+                    <Button variant="outline" onClick={resetAreaForm}>
+                      إلغاء
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* قائمة المناطق */}
+            <div className="space-y-2">
+              <h4 className="font-medium">المناطق الحالية</h4>
+              {selectedBranchForAreas && getBranchAreas(selectedBranchForAreas.id).length === 0 ? (
+                <p className="text-gray-500 text-sm text-center py-4">
+                  لا توجد مناطق مضافة لهذا الفرع
+                </p>
+              ) : (
+                selectedBranchForAreas && getBranchAreas(selectedBranchForAreas.id).map(area => (
+                  <div 
+                    key={area.id} 
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div>
+                      <span className="font-medium">{area.name}</span>
+                      <span className="text-primary mr-2">
+                        ({area.delivery_price} جنيه)
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openEditArea(area)}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleDeleteArea(area.id)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
