@@ -606,6 +606,17 @@ ${orderText}
               <Home className="w-6 h-6" />
               <span>الرئيسية</span>
             </button>
+
+            {/* الفروع والتواصل */}
+            <BranchesDialog 
+              restaurantId={restaurant.id}
+              trigger={
+                <button className="flex flex-col items-center gap-0.5 text-xs transition text-gray-600 hover:text-red-500">
+                  <Building2 className="w-6 h-6" />
+                  <span>الفروع والتواصل</span>
+                </button>
+              }
+            />
             
              {/* سلة الطلبات */}
               <Dialog open={showCartDialog} onOpenChange={setShowCartDialog}>
