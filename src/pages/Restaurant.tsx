@@ -602,7 +602,10 @@ ${orderText}
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-center gap-10">
             {/* الرئيسية */}
-            <button onClick={() => navigate("/")} className={`flex flex-col items-center gap-0.5 text-xs transition ${location.pathname === "/" ? "text-red-600 font-bold" : "text-gray-600"} hover:text-red-500`}>
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
+              className="flex flex-col items-center gap-0.5 text-xs transition text-red-600 font-bold hover:text-red-500"
+            >
               <Home className="w-6 h-6" />
               <span>الرئيسية</span>
             </button>
