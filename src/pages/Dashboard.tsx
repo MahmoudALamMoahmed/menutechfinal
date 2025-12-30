@@ -5,21 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Settings,
   Upload,
-  Plus,
   Menu,
   BarChart3,
-  Users,
   ShoppingBag,
   ArrowLeft,
   Save,
   Eye,
-  Building2
+  Building2,
+  Store
 } from 'lucide-react';
 
 interface Restaurant {
@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -84,7 +85,6 @@ export default function Dashboard() {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // المطعم غير موجود - إنشاء مطعم جديد
           setFormData(prev => ({ ...prev, username: username || '' }));
         } else {
           throw error;
@@ -127,7 +127,6 @@ export default function Dashboard() {
     
     try {
       if (restaurant) {
-        // تحديث المطعم الموجود
         const { error } = await supabase
           .from('restaurants')
           .update(formData)
@@ -139,8 +138,8 @@ export default function Dashboard() {
           title: 'تم الحفظ بنجاح',
           description: 'تم تحديث بيانات المطعم',
         });
+        setInfoDialogOpen(false);
       } else {
-        // إنشاء مطعم جديد
         const { data, error } = await supabase
           .from('restaurants')
           .insert([{ ...formData, owner_id: user.id }])
@@ -164,6 +163,7 @@ export default function Dashboard() {
           title: 'تم إنشاء المطعم بنجاح',
           description: 'يمكنك الآن إضافة عناصر القائمة',
         });
+        setInfoDialogOpen(false);
       }
       
       await fetchRestaurantData();
@@ -207,26 +207,247 @@ export default function Dashboard() {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">
-                  {restaurant ? 'إدارة المطعم' : 'إنشاء مطعم جديد'}
+                  {restaurant ? 'لوحة التحكم' : 'إنشاء مطعم جديد'}
                 </h1>
                 <p className="text-gray-600 text-sm">
                   {restaurant 
-                    ? `لوحة تحكم ${restaurant.name}` 
+                    ? `${restaurant.name}` 
                     : 'أنشئ مطعمك الإلكتروني الآن'
                   }
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {restaurant && (
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/${restaurant.username}`)}
-                >
-                  <Eye className="w-4 h-4 ml-2" />
-                  عرض المطعم
-                </Button>
-              )}
+            {restaurant && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/${restaurant.username}`)}
+              >
+                <Eye className="w-4 h-4 ml-2" />
+                عرض المطعم
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>إجراءات سريعة</CardTitle>
+              <CardDescription>
+                اختر ما تريد إدارته
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* إدارة معلومات المطعم - أول زر */}
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => setInfoDialogOpen(true)}
+              >
+                <Store className="w-4 h-4 ml-2" />
+                إدارة معلومات المطعم
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                disabled={!restaurant}
+                onClick={() => restaurant && navigate(`/${restaurant.username}/menu-management`)}
+              >
+                <Menu className="w-4 h-4 ml-2" />
+                إدارة القائمة
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                disabled={!restaurant}
+                onClick={() => restaurant && navigate(`/${restaurant.username}/footer-management`)}
+              >
+                <Settings className="w-4 h-4 ml-2" />
+                إدارة الفوتر
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                disabled={!restaurant}
+                onClick={() => restaurant && navigate(`/${restaurant.username}/branches-management`)}
+              >
+                <Building2 className="w-4 h-4 ml-2" />
+                إدارة الفروع
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                disabled={!restaurant}
+                onClick={() => restaurant && navigate(`/${restaurant.username}/orders`)}
+              >
+                <ShoppingBag className="w-4 h-4 ml-2" />
+                الطلبات
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                disabled={!restaurant}
+                onClick={() => restaurant && navigate(`/${restaurant.username}/analytics`)}
+              >
+                <BarChart3 className="w-4 h-4 ml-2" />
+                التقارير
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                disabled={!restaurant}
+                onClick={() => {
+                  toast({
+                    title: 'قريباً',
+                    description: 'ميزة رفع الصور ستكون متاحة قريباً',
+                  });
+                }}
+              >
+                <Upload className="w-4 h-4 ml-2" />
+                رفع الصور
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Help */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>مساعدة</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600 mb-3">
+                هل تحتاج مساعدة في إعداد مطعمك؟
+              </p>
+              <Button variant="outline" size="sm" className="w-full">
+                تواصل معنا
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Restaurant Info Dialog */}
+      <Dialog open={infoDialogOpen} onOpenChange={setInfoDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Store className="w-5 h-5" />
+              {restaurant ? 'إدارة معلومات المطعم' : 'إنشاء مطعم جديد'}
+            </DialogTitle>
+            <DialogDescription>
+              أدخل البيانات الأساسية لمطعمك
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">اسم المطعم *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="مطعم الأصالة"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">اسم المطعم في الرابط *</Label>
+                <div className="relative">
+                  <Input
+                    id="username"
+                    value={formData.username}
+                    onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') }))}
+                    placeholder="hany"
+                    required
+                    disabled={!!restaurant}
+                  />
+                  <div className="text-xs text-gray-500 mt-1">
+                    سيكون رابط مطعمك: /{formData.username}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">وصف المطعم</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="نقدم أفضل المأكولات الشرقية والغربية..."
+                rows={3}
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="phone">رقم الهاتف</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="01012345678"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp_phone">رقم الواتساب</Label>
+                <Input
+                  id="whatsapp_phone"
+                  value={formData.whatsapp_phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, whatsapp_phone: e.target.value }))}
+                  placeholder="01062698964"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">العنوان</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="شارع الجامعة، المعادي، القاهرة"
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cover_image_url">رابط صورة الغلاف</Label>
+                <Input
+                  id="cover_image_url"
+                  value={formData.cover_image_url}
+                  onChange={(e) => setFormData(prev => ({ ...prev, cover_image_url: e.target.value }))}
+                  placeholder="https://example.com/cover.jpg"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="logo_url">رابط شعار المطعم</Label>
+                <Input
+                  id="logo_url"
+                  value={formData.logo_url}
+                  onChange={(e) => setFormData(prev => ({ ...prev, logo_url: e.target.value }))}
+                  placeholder="https://example.com/logo.jpg"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="facebook_url">رابط صفحة الفيسبوك</Label>
+              <Input
+                id="facebook_url"
+                value={formData.facebook_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, facebook_url: e.target.value }))}
+                placeholder="https://facebook.com/restaurant-name"
+              />
+            </div>
+
+            {/* زر الحفظ داخل الديالوج */}
+            <div className="flex justify-end pt-4 border-t">
               <Button onClick={handleSave} disabled={saving}>
                 {saving ? (
                   <>
@@ -242,217 +463,8 @@ export default function Dashboard() {
               </Button>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Restaurant Info Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5" />
-                  معلومات المطعم
-                </CardTitle>
-                <CardDescription>
-                  أدخل البيانات الأساسية لمطعمك
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">اسم المطعم *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="مطعم الأصالة"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="username">اسم المطعم في الرابط *</Label>
-                    <div className="relative">
-                      <Input
-                        id="username"
-                        value={formData.username}
-                        onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') }))}
-                        placeholder="hany"
-                        required
-                        disabled={!!restaurant}
-                      />
-                      <div className="text-xs text-gray-500 mt-1">
-                        سيكون رابط مطعمك: /{formData.username}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">وصف المطعم</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="نقدم أفضل المأكولات الشرقية والغربية..."
-                    rows={3}
-                  />
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">رقم الهاتف</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="01012345678"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp_phone">رقم الواتساب</Label>
-                    <Input
-                      id="whatsapp_phone"
-                      value={formData.whatsapp_phone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, whatsapp_phone: e.target.value }))}
-                      placeholder="01062698964"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address">العنوان</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                    placeholder="شارع الجامعة، المعادي، القاهرة"
-                  />
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cover_image_url">رابط صورة الغلاف</Label>
-                    <Input
-                      id="cover_image_url"
-                      value={formData.cover_image_url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, cover_image_url: e.target.value }))}
-                      placeholder="https://example.com/cover.jpg"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="logo_url">رابط شعار المطعم</Label>
-                    <Input
-                      id="logo_url"
-                      value={formData.logo_url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, logo_url: e.target.value }))}
-                      placeholder="https://example.com/logo.jpg"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="facebook_url">رابط صفحة الفيسبوك</Label>
-                  <Input
-                    id="facebook_url"
-                    value={formData.facebook_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, facebook_url: e.target.value }))}
-                    placeholder="https://facebook.com/restaurant-name"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>إجراءات سريعة</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  disabled={!restaurant}
-                  onClick={() => restaurant && navigate(`/${restaurant.username}/menu-management`)}
-                >
-                  <Menu className="w-4 h-4 ml-2" />
-                  إدارة القائمة
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  disabled={!restaurant}
-                  onClick={() => restaurant && navigate(`/${restaurant.username}/footer-management`)}
-                >
-                  <Settings className="w-4 h-4 ml-2" />
-                  إدارة الفوتر
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  disabled={!restaurant}
-                  onClick={() => restaurant && navigate(`/${restaurant.username}/branches-management`)}
-                >
-                  <Building2 className="w-4 h-4 ml-2" />
-                  إدارة الفروع
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  disabled={!restaurant}
-                  onClick={() => restaurant && navigate(`/${restaurant.username}/orders`)}
-                >
-                  <ShoppingBag className="w-4 h-4 ml-2" />
-                  الطلبات
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  disabled={!restaurant}
-                  onClick={() => restaurant && navigate(`/${restaurant.username}/analytics`)}
-                >
-                  <BarChart3 className="w-4 h-4 ml-2" />
-                  التقارير
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  disabled={!restaurant}
-                  onClick={() => {
-                    toast({
-                      title: 'قريباً',
-                      description: 'ميزة رفع الصور ستكون متاحة قريباً',
-                    });
-                  }}
-                >
-                  <Upload className="w-4 h-4 ml-2" />
-                  رفع الصور
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Help */}
-            <Card>
-              <CardHeader>
-                <CardTitle>مساعدة</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 mb-3">
-                  هل تحتاج مساعدة في إعداد مطعمك؟
-                </p>
-                <Button variant="outline" size="sm" className="w-full">
-                  تواصل معنا
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
