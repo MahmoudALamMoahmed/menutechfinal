@@ -404,7 +404,7 @@ ${orderText}
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-gray-50" dir="rtl">
+  return <div className="min-h-screen bg-gray-50 pb-20" dir="rtl">
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
