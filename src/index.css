@@ -125,7 +125,7 @@ All colors MUST be HSL.
 
   html {
     scroll-behavior: smooth;
-    scrollbar-gutter: stable;
+    overflow-y: scroll;
   }
 
   /* Custom scrollbar */
