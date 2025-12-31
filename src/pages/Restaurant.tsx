@@ -408,7 +408,16 @@ ${orderText}
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-800">{restaurant.name}</h1>
+          <div className="flex items-center gap-3">
+            {restaurant.logo_url && (
+              <img 
+                src={restaurant.logo_url} 
+                alt={`${restaurant.name} logo`}
+                className="w-10 h-10 rounded-full object-cover border-2 border-primary/20"
+              />
+            )}
+            <h1 className="text-xl font-bold text-gray-800">{restaurant.name}</h1>
+          </div>
           <div className="flex items-center gap-2">
             
             {isOwner && <Button variant="outline" size="sm" onClick={() => navigate(`/${username}/dashboard`)}>
