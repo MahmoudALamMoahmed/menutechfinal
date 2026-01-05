@@ -27,9 +27,6 @@ interface Restaurant {
   description: string;
   cover_image_url: string;
   logo_url: string;
-  phone: string;
-  whatsapp_phone: string;
-  address: string;
   owner_id: string;
   facebook_url: string;
   delivery_phone: string;
@@ -312,8 +309,8 @@ export default function Restaurant() {
       const deliveryPrice = getDeliveryPrice();
       const finalTotal = getFinalTotal();
       
-      // تحديد رقم الواتساب المناسب
-      let whatsappNumber = restaurant.whatsapp_phone;
+      // تحديد رقم الواتساب المناسب من الفرع المختار
+      let whatsappNumber = '';
       let branchName = '';
       let areaName = '';
       

@@ -290,7 +290,6 @@ export type Database = {
       }
       restaurants: {
         Row: {
-          address: string | null
           complaints_phone: string | null
           cover_image_url: string | null
           created_at: string
@@ -303,14 +302,11 @@ export type Database = {
           logo_url: string | null
           name: string
           owner_id: string
-          phone: string | null
           updated_at: string
           username: string
-          whatsapp_phone: string | null
           working_hours: string | null
         }
         Insert: {
-          address?: string | null
           complaints_phone?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -323,14 +319,11 @@ export type Database = {
           logo_url?: string | null
           name: string
           owner_id: string
-          phone?: string | null
           updated_at?: string
           username: string
-          whatsapp_phone?: string | null
           working_hours?: string | null
         }
         Update: {
-          address?: string | null
           complaints_phone?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -343,10 +336,8 @@ export type Database = {
           logo_url?: string | null
           name?: string
           owner_id?: string
-          phone?: string | null
           updated_at?: string
           username?: string
-          whatsapp_phone?: string | null
           working_hours?: string | null
         }
         Relationships: []

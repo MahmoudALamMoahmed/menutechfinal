@@ -25,9 +25,6 @@ interface Restaurant {
   id: string;
   name: string;
   username: string;
-  address: string;
-  phone: string;
-  whatsapp_phone: string;
   delivery_phone: string;
   complaints_phone: string;
   email: string;
@@ -47,9 +44,6 @@ export default function FooterManagement() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    address: '',
-    phone: '',
-    whatsapp_phone: '',
     delivery_phone: '',
     complaints_phone: '',
     email: '',
@@ -84,9 +78,6 @@ export default function FooterManagement() {
 
       setRestaurant(restaurantData);
       setFormData({
-        address: restaurantData.address || '',
-        phone: restaurantData.phone || '',
-        whatsapp_phone: restaurantData.whatsapp_phone || '',
         delivery_phone: restaurantData.delivery_phone || '',
         complaints_phone: restaurantData.complaints_phone || '',
         email: restaurantData.email || '',
@@ -212,26 +203,6 @@ export default function FooterManagement() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">الهاتف الرئيسي</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="01012345678"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp_phone">رقم الواتساب</Label>
-                <Input
-                  id="whatsapp_phone"
-                  value={formData.whatsapp_phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, whatsapp_phone: e.target.value }))}
-                  placeholder="01062698964"
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="delivery_phone">رقم طلبات الدليفري</Label>
                 <Input
                   id="delivery_phone"
@@ -264,28 +235,18 @@ export default function FooterManagement() {
             </CardContent>
           </Card>
 
-          {/* Location & Social Media */}
+          {/* Social Media */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                الموقع ووسائل التواصل الاجتماعي
+                <Facebook className="w-5 h-5" />
+                وسائل التواصل الاجتماعي
               </CardTitle>
               <CardDescription>
-                عنوان المطعم وروابط وسائل التواصل
+                روابط وسائل التواصل ومواعيد العمل
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="address">عنوان المطعم</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="شارع الجامعة، المعادي، القاهرة"
-                  rows={3}
-                />
-              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="facebook_url">رابط صفحة الفيسبوك</Label>
@@ -335,12 +296,6 @@ export default function FooterManagement() {
                 {/* Restaurant Info Preview */}
                 <div className="space-y-3">
                   <h3 className="font-bold text-lg text-primary">{restaurant.name}</h3>
-                  {formData.address && (
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 text-secondary mt-1 flex-shrink-0" />
-                      <span className="text-gray-300">{formData.address}</span>
-                    </div>
-                  )}
                   {formData.working_hours && (
                     <div className="flex items-start gap-2">
                       <Clock className="w-4 h-4 text-accent mt-1 flex-shrink-0" />
@@ -359,16 +314,6 @@ export default function FooterManagement() {
                         <div>
                           <div className="text-xs text-gray-400">دليفري</div>
                           <span className="text-gray-300">{formData.delivery_phone}</span>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {formData.whatsapp_phone && (
-                      <div className="flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-success" />
-                        <div>
-                          <div className="text-xs text-gray-400">واتساب</div>
-                          <span className="text-gray-300">{formData.whatsapp_phone}</span>
                         </div>
                       </div>
                     )}

@@ -29,9 +29,6 @@ interface Restaurant {
   description: string;
   cover_image_url: string;
   logo_url: string;
-  phone: string;
-  whatsapp_phone: string;
-  address: string;
   owner_id: string;
   facebook_url: string;
 }
@@ -50,9 +47,6 @@ export default function Dashboard() {
     name: '',
     username: '',
     description: '',
-    phone: '',
-    whatsapp_phone: '',
-    address: '',
     cover_image_url: '',
     logo_url: '',
     facebook_url: '',
@@ -95,9 +89,6 @@ export default function Dashboard() {
           name: restaurantData.name || '',
           username: restaurantData.username || '',
           description: restaurantData.description || '',
-          phone: restaurantData.phone || '',
-          whatsapp_phone: restaurantData.whatsapp_phone || '',
-          address: restaurantData.address || '',
           cover_image_url: restaurantData.cover_image_url || '',
           logo_url: restaurantData.logo_url || '',
           facebook_url: restaurantData.facebook_url || '',
@@ -381,37 +372,6 @@ export default function Dashboard() {
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="نقدم أفضل المأكولات الشرقية والغربية..."
                 rows={3}
-              />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">رقم الهاتف</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="01012345678"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp_phone">رقم الواتساب</Label>
-                <Input
-                  id="whatsapp_phone"
-                  value={formData.whatsapp_phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, whatsapp_phone: e.target.value }))}
-                  placeholder="01062698964"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">العنوان</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                placeholder="شارع الجامعة، المعادي، القاهرة"
               />
             </div>
 

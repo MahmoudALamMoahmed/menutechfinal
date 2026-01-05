@@ -15,9 +15,6 @@ import { supabase } from '@/integrations/supabase/client';
 interface Restaurant {
   id: string;
   name: string;
-  address: string;
-  phone: string;
-  whatsapp_phone: string;
   delivery_phone: string;
   complaints_phone: string;
   email: string;
@@ -74,12 +71,6 @@ export default function RestaurantFooter({ restaurant }: RestaurantFooterProps) 
           {/* Restaurant Info */}
           <div className="space-y-4">
             <h3 className="font-bold text-xl text-primary">{restaurant.name}</h3>
-            {restaurant.address && (
-              <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-secondary mt-1 flex-shrink-0" />
-                <span className="text-gray-300">{restaurant.address}</span>
-              </div>
-            )}
             {restaurant.working_hours && (
               <div className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
@@ -193,38 +184,6 @@ export default function RestaurantFooter({ restaurant }: RestaurantFooterProps) 
                         className="text-gray-300 hover:text-primary transition-colors"
                       >
                         {restaurant.delivery_phone}
-                      </a>
-                    </div>
-                  </div>
-                )}
-                
-                {restaurant.whatsapp_phone && (
-                  <div className="flex items-center gap-3">
-                    <MessageCircle className="w-5 h-5 text-green-500" />
-                    <div>
-                      <div className="text-sm text-gray-400">واتساب</div>
-                      <a 
-                        href={`https://wa.me/${restaurant.whatsapp_phone.replace(/\D/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-300 hover:text-green-500 transition-colors"
-                      >
-                        {restaurant.whatsapp_phone}
-                      </a>
-                    </div>
-                  </div>
-                )}
-
-                {restaurant.phone && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-accent" />
-                    <div>
-                      <div className="text-sm text-gray-400">الهاتف الرئيسي</div>
-                      <a 
-                        href={`tel:${restaurant.phone}`}
-                        className="text-gray-300 hover:text-accent transition-colors"
-                      >
-                        {restaurant.phone}
                       </a>
                     </div>
                   </div>
