@@ -50,8 +50,6 @@ export default function Dashboard() {
     cover_image_url: '',
     logo_url: '',
     facebook_url: '',
-    delivery_phone: '',
-    complaints_phone: '',
     email: '',
     instagram_url: '',
     working_hours: ''
@@ -92,8 +90,6 @@ export default function Dashboard() {
           cover_image_url: restaurantData.cover_image_url || '',
           logo_url: restaurantData.logo_url || '',
           facebook_url: restaurantData.facebook_url || '',
-          delivery_phone: restaurantData.delivery_phone || '',
-          complaints_phone: restaurantData.complaints_phone || '',
           email: restaurantData.email || '',
           instagram_url: restaurantData.instagram_url || '',
           working_hours: restaurantData.working_hours || ''

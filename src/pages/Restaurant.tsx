@@ -29,8 +29,7 @@ interface Restaurant {
   logo_url: string;
   owner_id: string;
   facebook_url: string;
-  delivery_phone: string;
-  complaints_phone: string;
+  address: string;
   email: string;
   instagram_url: string;
   working_hours: string;

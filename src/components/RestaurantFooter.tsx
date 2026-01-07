@@ -15,8 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface Restaurant {
   id: string;
   name: string;
-  delivery_phone: string;
-  complaints_phone: string;
+  address: string;
   email: string;
   facebook_url: string;
   instagram_url: string;
@@ -71,6 +70,12 @@ export default function RestaurantFooter({ restaurant }: RestaurantFooterProps) 
           {/* Restaurant Info */}
           <div className="space-y-4">
             <h3 className="font-bold text-xl text-primary">{restaurant.name}</h3>
+            {restaurant.address && (
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
+                <span className="text-gray-300">{restaurant.address}</span>
+              </div>
+            )}
             {restaurant.working_hours && (
               <div className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
@@ -169,43 +174,6 @@ export default function RestaurantFooter({ restaurant }: RestaurantFooterProps) 
             </div>
           )}
 
-          {/* Contact Info - Show if no branches */}
-          {branches.length === 0 && (
-            <div className="space-y-4">
-              <h4 className="font-bold text-lg">أرقام التواصل</h4>
-              <div className="space-y-3">
-                {restaurant.delivery_phone && (
-                  <div className="flex items-center gap-3">
-                    <Truck className="w-5 h-5 text-primary" />
-                    <div>
-                      <div className="text-sm text-gray-400">طلبات الدليفري</div>
-                      <a 
-                        href={`tel:${restaurant.delivery_phone}`}
-                        className="text-gray-300 hover:text-primary transition-colors"
-                      >
-                        {restaurant.delivery_phone}
-                      </a>
-                    </div>
-                  </div>
-                )}
-
-                {restaurant.complaints_phone && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-destructive" />
-                    <div>
-                      <div className="text-sm text-gray-400">الشكاوي</div>
-                      <a 
-                        href={`tel:${restaurant.complaints_phone}`}
-                        className="text-gray-300 hover:text-destructive transition-colors"
-                      >
-                        {restaurant.complaints_phone}
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Additional Info */}
           <div className="space-y-4">

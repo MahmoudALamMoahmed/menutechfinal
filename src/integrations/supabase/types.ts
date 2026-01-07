@@ -290,10 +290,9 @@ export type Database = {
       }
       restaurants: {
         Row: {
-          complaints_phone: string | null
+          address: string | null
           cover_image_url: string | null
           created_at: string
-          delivery_phone: string | null
           description: string | null
           email: string | null
           facebook_url: string | null
@@ -307,10 +306,9 @@ export type Database = {
           working_hours: string | null
         }
         Insert: {
-          complaints_phone?: string | null
+          address?: string | null
           cover_image_url?: string | null
           created_at?: string
-          delivery_phone?: string | null
           description?: string | null
           email?: string | null
           facebook_url?: string | null
@@ -324,10 +322,9 @@ export type Database = {
           working_hours?: string | null
         }
         Update: {
-          complaints_phone?: string | null
+          address?: string | null
           cover_image_url?: string | null
           created_at?: string
-          delivery_phone?: string | null
           description?: string | null
           email?: string | null
           facebook_url?: string | null

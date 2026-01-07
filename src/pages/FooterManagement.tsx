@@ -12,21 +12,17 @@ import {
   ArrowLeft,
   Save,
   MapPin,
-  Phone,
-  MessageCircle,
   Mail,
   Clock,
   Facebook,
-  Instagram,
-  Truck
+  Instagram
 } from 'lucide-react';
 
 interface Restaurant {
   id: string;
   name: string;
   username: string;
-  delivery_phone: string;
-  complaints_phone: string;
+  address: string;
   email: string;
   facebook_url: string;
   instagram_url: string;
@@ -44,8 +40,7 @@ export default function FooterManagement() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    delivery_phone: '',
-    complaints_phone: '',
+    address: '',
     email: '',
     facebook_url: '',
     instagram_url: '',
@@ -78,8 +73,7 @@ export default function FooterManagement() {
 
       setRestaurant(restaurantData);
       setFormData({
-        delivery_phone: restaurantData.delivery_phone || '',
-        complaints_phone: restaurantData.complaints_phone || '',
+        address: restaurantData.address || '',
         email: restaurantData.email || '',
         facebook_url: restaurantData.facebook_url || '',
         instagram_url: restaurantData.instagram_url || '',
@@ -190,35 +184,25 @@ export default function FooterManagement() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Contact Information */}
+          {/* Location & Contact */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Phone className="w-5 h-5" />
-                معلومات التواصل
+                <MapPin className="w-5 h-5" />
+                الموقع والتواصل
               </CardTitle>
               <CardDescription>
-                أرقام الهواتف ووسائل التواصل
+                العنوان الرئيسي والبريد الإلكتروني
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="delivery_phone">رقم طلبات الدليفري</Label>
+                <Label htmlFor="address">العنوان الرئيسي (الدولة/المدينة)</Label>
                 <Input
-                  id="delivery_phone"
-                  value={formData.delivery_phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, delivery_phone: e.target.value }))}
-                  placeholder="01012345678"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="complaints_phone">رقم الشكاوي</Label>
-                <Input
-                  id="complaints_phone"
-                  value={formData.complaints_phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, complaints_phone: e.target.value }))}
-                  placeholder="01012345678"
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                  placeholder="المملكة العربية السعودية"
                 />
               </div>
 
@@ -291,33 +275,23 @@ export default function FooterManagement() {
           </CardHeader>
           <CardContent>
             <div className="bg-gray-900 text-white p-8 rounded-lg">
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
                 
                 {/* Restaurant Info Preview */}
                 <div className="space-y-3">
                   <h3 className="font-bold text-lg text-primary">{restaurant.name}</h3>
+                  {formData.address && (
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-accent mt-1 flex-shrink-0" />
+                      <span className="text-gray-300">{formData.address}</span>
+                    </div>
+                  )}
                   {formData.working_hours && (
                     <div className="flex items-start gap-2">
                       <Clock className="w-4 h-4 text-accent mt-1 flex-shrink-0" />
                       <span className="text-gray-300">{formData.working_hours}</span>
                     </div>
                   )}
-                </div>
-
-                {/* Contact Numbers Preview */}
-                <div className="space-y-3">
-                  <h4 className="font-bold">أرقام التواصل</h4>
-                  <div className="space-y-2">
-                    {formData.delivery_phone && (
-                      <div className="flex items-center gap-2">
-                        <Truck className="w-4 h-4 text-primary" />
-                        <div>
-                          <div className="text-xs text-gray-400">دليفري</div>
-                          <span className="text-gray-300">{formData.delivery_phone}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
                 </div>
 
                 {/* Digital Contact Preview */}
