@@ -789,7 +789,7 @@ export default function MenuManagement() {
                       label="صورة الصنف"
                       currentImageUrl={itemForm.image_url}
                       currentPublicId={itemForm.image_public_id}
-                      publicId={getMenuItemPublicId(restaurant.id, editingItem?.id || tempItemId!)}
+                      publicId={getMenuItemPublicId(restaurant.username, editingItem?.id || tempItemId!)}
                       aspectRatio="square"
                       onUploadComplete={(url, publicId) => {
                         setItemForm(prev => ({

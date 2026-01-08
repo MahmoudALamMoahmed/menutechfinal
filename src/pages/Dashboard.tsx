@@ -370,7 +370,7 @@ export default function Dashboard() {
                   label="صورة الغلاف"
                   currentImageUrl={formData.cover_image_url}
                   currentPublicId={formData.cover_image_public_id}
-                  publicId={getCoverPublicId(restaurant.id)}
+                  publicId={getCoverPublicId(restaurant.username)}
                   aspectRatio="cover"
                   onUploadComplete={(url, publicId) => {
                     setFormData(prev => ({
@@ -391,7 +391,7 @@ export default function Dashboard() {
                   label="شعار المطعم"
                   currentImageUrl={formData.logo_url}
                   currentPublicId={formData.logo_public_id}
-                  publicId={getLogoPublicId(restaurant.id)}
+                  publicId={getLogoPublicId(restaurant.username)}
                   aspectRatio="logo"
                   onUploadComplete={(url, publicId) => {
                     setFormData(prev => ({
