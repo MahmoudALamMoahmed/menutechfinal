@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import ImageUploader from '@/components/ImageUploader';
+import { getCoverPublicId, getLogoPublicId } from '@/lib/cloudinary';
 import { 
   Settings,
-  Upload,
   Menu,
   BarChart3,
   ShoppingBag,
@@ -31,6 +32,8 @@ interface Restaurant {
   logo_url: string;
   owner_id: string;
   facebook_url: string;
+  cover_image_public_id?: string;
+  logo_public_id?: string;
 }
 
 export default function Dashboard() {
@@ -52,7 +55,9 @@ export default function Dashboard() {
     facebook_url: '',
     email: '',
     instagram_url: '',
-    working_hours: ''
+    working_hours: '',
+    cover_image_public_id: '',
+    logo_public_id: ''
   });
 
   useEffect(() => {
@@ -92,7 +97,9 @@ export default function Dashboard() {
           facebook_url: restaurantData.facebook_url || '',
           email: restaurantData.email || '',
           instagram_url: restaurantData.instagram_url || '',
-          working_hours: restaurantData.working_hours || ''
+          working_hours: restaurantData.working_hours || '',
+          cover_image_public_id: restaurantData.cover_image_public_id || '',
+          logo_public_id: restaurantData.logo_public_id || ''
         });
       }
     } catch (error) {
@@ -283,20 +290,6 @@ export default function Dashboard() {
                 <BarChart3 className="w-4 h-4 ml-2" />
                 التقارير
               </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                disabled={!restaurant}
-                onClick={() => {
-                  toast({
-                    title: 'قريباً',
-                    description: 'ميزة رفع الصور ستكون متاحة قريباً',
-                  });
-                }}
-              >
-                <Upload className="w-4 h-4 ml-2" />
-                رفع الصور
-              </Button>
             </CardContent>
           </Card>
 
@@ -371,26 +364,58 @@ export default function Dashboard() {
               />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="cover_image_url">رابط صورة الغلاف</Label>
-                <Input
-                  id="cover_image_url"
-                  value={formData.cover_image_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, cover_image_url: e.target.value }))}
-                  placeholder="https://example.com/cover.jpg"
+            {restaurant && (
+              <div className="grid md:grid-cols-2 gap-4">
+                <ImageUploader
+                  label="صورة الغلاف"
+                  currentImageUrl={formData.cover_image_url}
+                  currentPublicId={formData.cover_image_public_id}
+                  publicId={getCoverPublicId(restaurant.id)}
+                  aspectRatio="cover"
+                  onUploadComplete={(url, publicId) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      cover_image_url: url,
+                      cover_image_public_id: publicId
+                    }));
+                  }}
+                  onDelete={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      cover_image_url: '',
+                      cover_image_public_id: ''
+                    }));
+                  }}
+                />
+                <ImageUploader
+                  label="شعار المطعم"
+                  currentImageUrl={formData.logo_url}
+                  currentPublicId={formData.logo_public_id}
+                  publicId={getLogoPublicId(restaurant.id)}
+                  aspectRatio="logo"
+                  onUploadComplete={(url, publicId) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      logo_url: url,
+                      logo_public_id: publicId
+                    }));
+                  }}
+                  onDelete={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      logo_url: '',
+                      logo_public_id: ''
+                    }));
+                  }}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="logo_url">رابط شعار المطعم</Label>
-                <Input
-                  id="logo_url"
-                  value={formData.logo_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, logo_url: e.target.value }))}
-                  placeholder="https://example.com/logo.jpg"
-                />
-              </div>
-            </div>
+            )}
+            
+            {!restaurant && (
+              <p className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                ℹ️ يمكنك رفع صور الغلاف والشعار بعد إنشاء المطعم
+              </p>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="facebook_url">رابط صفحة الفيسبوك</Label>
