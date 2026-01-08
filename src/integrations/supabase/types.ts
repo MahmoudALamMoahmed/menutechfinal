@@ -188,6 +188,7 @@ export type Database = {
           description: string | null
           display_order: number | null
           id: string
+          image_public_id: string | null
           image_url: string | null
           is_available: boolean | null
           name: string
@@ -201,6 +202,7 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           id?: string
+          image_public_id?: string | null
           image_url?: string | null
           is_available?: boolean | null
           name: string
@@ -214,6 +216,7 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           id?: string
+          image_public_id?: string | null
           image_url?: string | null
           is_available?: boolean | null
           name?: string
@@ -291,6 +294,7 @@ export type Database = {
       restaurants: {
         Row: {
           address: string | null
+          cover_image_public_id: string | null
           cover_image_url: string | null
           created_at: string
           description: string | null
@@ -298,6 +302,7 @@ export type Database = {
           facebook_url: string | null
           id: string
           instagram_url: string | null
+          logo_public_id: string | null
           logo_url: string | null
           name: string
           owner_id: string
@@ -307,6 +312,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          cover_image_public_id?: string | null
           cover_image_url?: string | null
           created_at?: string
           description?: string | null
@@ -314,6 +320,7 @@ export type Database = {
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
+          logo_public_id?: string | null
           logo_url?: string | null
           name: string
           owner_id: string
@@ -323,6 +330,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          cover_image_public_id?: string | null
           cover_image_url?: string | null
           created_at?: string
           description?: string | null
@@ -330,6 +338,7 @@ export type Database = {
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
+          logo_public_id?: string | null
           logo_url?: string | null
           name?: string
           owner_id?: string

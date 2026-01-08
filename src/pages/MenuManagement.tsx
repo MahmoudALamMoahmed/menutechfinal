@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import ImageUploader from '@/components/ImageUploader';
+import { getMenuItemPublicId, deleteFromCloudinary } from '@/lib/cloudinary';
 import { 
   ArrowLeft,
   Plus,
@@ -42,6 +44,7 @@ interface MenuItem {
   category_id: string | null;
   restaurant_id: string;
   image_url: string | null;
+  image_public_id: string | null;
   is_available: boolean;
   display_order: number;
 }
@@ -97,9 +100,13 @@ export default function MenuManagement() {
     price: '',
     category_id: '',
     image_url: '',
+    image_public_id: '',
     is_available: true,
     display_order: 0
   });
+  
+  // Temporary item ID for new items (for image upload)
+  const [tempItemId, setTempItemId] = useState<string | null>(null);
   
   const [sizeForm, setSizeForm] = useState({
     name: '',
@@ -259,6 +266,7 @@ export default function MenuManagement() {
         price: parseFloat(itemForm.price),
         category_id: itemForm.category_id || null,
         image_url: itemForm.image_url || null,
+        image_public_id: itemForm.image_public_id || null,
         is_available: itemForm.is_available,
         display_order: itemForm.display_order,
         restaurant_id: restaurant.id
@@ -298,9 +306,11 @@ export default function MenuManagement() {
         price: '',
         category_id: '',
         image_url: '',
+        image_public_id: '',
         is_available: true,
         display_order: 0
       });
+      setTempItemId(null);
       setShowItemForm(false);
       setEditingItem(null);
       await fetchData();
@@ -348,6 +358,19 @@ export default function MenuManagement() {
     if (!confirm('هل أنت متأكد من حذف هذا الصنف؟')) return;
     
     try {
+      // Find the item to get its image public_id
+      const item = menuItems.find(i => i.id === itemId);
+      
+      // Delete image from Cloudinary if exists
+      if (item?.image_public_id) {
+        try {
+          await deleteFromCloudinary(item.image_public_id);
+        } catch (error) {
+          console.error('Error deleting image from Cloudinary:', error);
+          // Continue with item deletion even if image deletion fails
+        }
+      }
+      
       const { error } = await supabase
         .from('menu_items')
         .delete()
@@ -696,7 +719,13 @@ export default function MenuManagement() {
                   <CardTitle>إدارة الأصناف</CardTitle>
                   <CardDescription>أضف وعدل أصناف القائمة</CardDescription>
                 </div>
-                <Button onClick={() => setShowItemForm(!showItemForm)}>
+                <Button onClick={() => {
+                  setShowItemForm(!showItemForm);
+                  if (!showItemForm) {
+                    // Generate temp ID for new item
+                    setTempItemId(crypto.randomUUID());
+                  }
+                }}>
                   <Plus className="w-4 h-4 ml-2" />
                   إضافة صنف
                 </Button>
@@ -755,15 +784,29 @@ export default function MenuManagement() {
                       </Select>
                     </div>
                   </div>
-                  <div>
-                    <Label htmlFor="itemImage">رابط الصورة</Label>
-                    <Input
-                      id="itemImage"
-                      value={itemForm.image_url}
-                      onChange={(e) => setItemForm(prev => ({ ...prev, image_url: e.target.value }))}
-                      placeholder="https://example.com/image.jpg"
+                  {restaurant && (editingItem || tempItemId) && (
+                    <ImageUploader
+                      label="صورة الصنف"
+                      currentImageUrl={itemForm.image_url}
+                      currentPublicId={itemForm.image_public_id}
+                      publicId={getMenuItemPublicId(restaurant.id, editingItem?.id || tempItemId!)}
+                      aspectRatio="square"
+                      onUploadComplete={(url, publicId) => {
+                        setItemForm(prev => ({
+                          ...prev,
+                          image_url: url,
+                          image_public_id: publicId
+                        }));
+                      }}
+                      onDelete={() => {
+                        setItemForm(prev => ({
+                          ...prev,
+                          image_url: '',
+                          image_public_id: ''
+                        }));
+                      }}
                     />
-                  </div>
+                  )}
                   <div className="flex gap-2">
                     <Button onClick={handleSaveItem} disabled={saving}>
                       <Save className="w-4 h-4 ml-2" />
@@ -774,12 +817,14 @@ export default function MenuManagement() {
                       onClick={() => {
                         setShowItemForm(false);
                         setEditingItem(null);
+                        setTempItemId(null);
                         setItemForm({
                           name: '',
                           description: '',
                           price: '',
                           category_id: '',
                           image_url: '',
+                          image_public_id: '',
                           is_available: true,
                           display_order: 0
                         });
@@ -814,19 +859,21 @@ export default function MenuManagement() {
                        <Button
                          size="sm"
                          variant="outline"
-                         onClick={() => {
-                           setEditingItem(item);
-                           setItemForm({
-                             name: item.name,
-                             description: item.description || '',
-                             price: item.price.toString(),
-                             category_id: item.category_id || '',
-                             image_url: item.image_url || '',
-                             is_available: item.is_available,
-                             display_order: item.display_order
-                           });
-                           setShowItemForm(true);
-                         }}
+                        onClick={() => {
+                          setEditingItem(item);
+                          setTempItemId(null);
+                          setItemForm({
+                            name: item.name,
+                            description: item.description || '',
+                            price: item.price.toString(),
+                            category_id: item.category_id || '',
+                            image_url: item.image_url || '',
+                            image_public_id: item.image_public_id || '',
+                            is_available: item.is_available,
+                            display_order: item.display_order
+                          });
+                          setShowItemForm(true);
+                        }}
                        >
                          <Edit className="w-4 h-4" />
                        </Button>
