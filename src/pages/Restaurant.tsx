@@ -21,6 +21,7 @@ import { Home, ShoppingCart, User, Plus, Minus, Phone, MapPin, Clock, Share2, Se
 import RestaurantFooter from '@/components/RestaurantFooter';
 import ProductDetailsDialog from '@/components/ProductDetailsDialog';
 import BranchesDialog from '@/components/BranchesDialog';
+import ShareDialog from '@/components/ShareDialog';
 interface Restaurant {
   id: string;
   name: string;
@@ -415,15 +416,11 @@ ${orderText}
             <h1 className="text-xl font-bold text-gray-800">{restaurant.name}</h1>
           </div>
           <div className="flex items-center gap-2">
-            
+            <ShareDialog restaurantName={restaurant.name} username={username!} />
             {isOwner && <Button variant="outline" size="sm" onClick={() => navigate(`/${username}/dashboard`)}>
                 <Settings className="w-4 h-4 ml-2" />
                 إدارة المطعم
               </Button>}
-            {/* <Button variant="outline" size="sm">
-              <Share2 className="w-4 h-4 ml-2" />
-              مشاركة
-            </Button> */}
           </div>
         </div>
       </div>
