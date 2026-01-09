@@ -79,21 +79,24 @@ export default function ShareDialog({ restaurantName, username }: ShareDialogPro
     const canvas = qrRef.current;
     if (!canvas) return;
 
+    // Get actual QR canvas dimensions
+    const qrWidth = canvas.width;
+    const qrHeight = canvas.height;
+    const padding = 20;
+
     // Create a new canvas with white background
     const downloadCanvas = document.createElement('canvas');
-    const size = 220; // QR size + padding
-    downloadCanvas.width = size;
-    downloadCanvas.height = size;
+    downloadCanvas.width = qrWidth + (padding * 2);
+    downloadCanvas.height = qrHeight + (padding * 2);
     const ctx = downloadCanvas.getContext('2d');
     if (!ctx) return;
 
     // White background
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, size, size);
+    ctx.fillRect(0, 0, downloadCanvas.width, downloadCanvas.height);
 
-    // Draw QR code centered
-    const padding = 20;
-    ctx.drawImage(canvas, padding, padding);
+    // Draw QR code centered with full dimensions
+    ctx.drawImage(canvas, 0, 0, qrWidth, qrHeight, padding, padding, qrWidth, qrHeight);
 
     // Download
     const link = document.createElement('a');
