@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
+import { useState, useRef } from 'react';
+import { QRCodeCanvas } from 'qrcode.react';
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Share2, Copy, Check, MessageCircle } from 'lucide-react';
+import { Share2, Copy, Check, MessageCircle, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ShareDialogProps {
@@ -21,6 +21,7 @@ export default function ShareDialog({ restaurantName, username }: ShareDialogPro
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const qrRef = useRef<HTMLCanvasElement>(null);
 
   const restaurantUrl = `${window.location.origin}/${username}`;
 
@@ -74,6 +75,33 @@ export default function ShareDialog({ restaurantName, username }: ShareDialogPro
     window.open(messengerUrl, '_blank');
   };
 
+  const handleDownloadQR = () => {
+    const canvas = qrRef.current;
+    if (!canvas) return;
+
+    // Create a new canvas with white background
+    const downloadCanvas = document.createElement('canvas');
+    const size = 220; // QR size + padding
+    downloadCanvas.width = size;
+    downloadCanvas.height = size;
+    const ctx = downloadCanvas.getContext('2d');
+    if (!ctx) return;
+
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+
+    // Draw QR code centered
+    const padding = 20;
+    ctx.drawImage(canvas, padding, padding);
+
+    // Download
+    const link = document.createElement('a');
+    link.download = `${username}-qr-code.png`;
+    link.href = downloadCanvas.toDataURL('image/png');
+    link.click();
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -90,12 +118,46 @@ export default function ShareDialog({ restaurantName, username }: ShareDialogPro
         <div className="flex flex-col items-center gap-6 py-4">
           {/* QR Code */}
           <div className="bg-white p-4 rounded-xl shadow-inner border">
-            <QRCodeSVG 
+            <QRCodeCanvas 
+              ref={qrRef}
               value={restaurantUrl} 
               size={180}
               level="H"
-              includeMargin
+              includeMargin={false}
             />
+          </div>
+
+          {/* Download QR Button */}
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleDownloadQR}
+            className="gap-2"
+          >
+            <Download className="w-4 h-4" />
+            تحميل QR Code
+          </Button>
+
+          {/* Restaurant Link */}
+          <div className="w-full flex gap-2">
+            <Input 
+              value={restaurantUrl} 
+              readOnly 
+              className="text-left text-sm"
+              dir="ltr"
+            />
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={handleCopy}
+              className="shrink-0"
+            >
+              {copied ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </Button>
           </div>
 
           {/* Restaurant Link */}
