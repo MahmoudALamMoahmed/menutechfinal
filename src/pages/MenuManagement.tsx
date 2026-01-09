@@ -19,7 +19,8 @@ import {
   Trash2,
   Save,
   Ruler,
-  Cookie
+  Cookie,
+  Search
 } from 'lucide-react';
 
 interface Restaurant {
@@ -122,6 +123,7 @@ export default function MenuManagement() {
   
   const [editingSize, setEditingSize] = useState<Size | null>(null);
   const [editingExtra, setEditingExtra] = useState<Extra | null>(null);
+  const [itemSearchQuery, setItemSearchQuery] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -730,6 +732,17 @@ export default function MenuManagement() {
                   إضافة صنف
                 </Button>
               </div>
+              
+              {/* Search Box */}
+              <div className="relative mt-4">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="ابحث عن صنف..."
+                  value={itemSearchQuery}
+                  onChange={(e) => setItemSearchQuery(e.target.value)}
+                  className="pr-9 h-9 text-sm"
+                />
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {showItemForm && (
@@ -836,8 +849,13 @@ export default function MenuManagement() {
                 </div>
               )}
               
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {menuItems.map((item) => (
+              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                {menuItems
+                  .filter(item => 
+                    item.name.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
+                    item.description?.toLowerCase().includes(itemSearchQuery.toLowerCase())
+                  )
+                  .map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-3 bg-white border rounded-lg">
                     <div className="flex-1">
                       <p className="font-medium">{item.name}</p>
