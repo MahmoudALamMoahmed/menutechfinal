@@ -428,7 +428,7 @@ ${orderText}
       </div>
 
       {/* Cover Image */}
-      <div className="relative h-96 bg-gradient-to-r from-orange-400 to-red-500">
+      <div className="relative h-48 bg-gradient-to-r from-orange-400 to-red-500">
         {restaurant.cover_image_url && <img src={getCoverImageUrl(restaurant.cover_image_url)} alt={restaurant.name} className="w-full h-full object-cover" loading="eager" />}
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
         <div className="absolute bottom-4 right-4 text-white">
