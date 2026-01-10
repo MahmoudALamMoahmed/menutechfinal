@@ -116,12 +116,7 @@ export async function uploadToCloudinary(
     }
     formData.append('public_id', filename);
     
-    // ضغط تلقائي للصور أثناء الرفع
-    // تحويل لـ WebP/AVIF مع جودة تلقائية وحد أقصى للأبعاد
-    formData.append('eager', 'f_auto,q_auto:good,c_limit,w_1200,h_1200');
-    formData.append('eager_async', 'true'); // معالجة في الخلفية لسرعة الرفع
-    
-    console.log('Uploading to Cloudinary:', { 
+    console.log('Uploading to Cloudinary:', {
       folder,
       filename,
       fullPublicId: uniquePublicId,
