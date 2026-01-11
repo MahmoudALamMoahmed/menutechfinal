@@ -13,14 +13,41 @@ const COMPRESSION_OPTIONS = {
   initialQuality: 0.8, // جودة البداية
 };
 
+// ============ Progress Callback Types ============
+export interface UploadProgress {
+  stage: 'compressing' | 'uploading' | 'done';
+  progress: number; // 0-100
+  message: string;
+}
+
+export type ProgressCallback = (progress: UploadProgress) => void;
+
 /**
- * ضغط الصورة قبل الرفع
+ * ضغط الصورة قبل الرفع مع تتبع التقدم
  */
-async function compressImage(file: File): Promise<File> {
+async function compressImage(
+  file: File, 
+  onProgress?: ProgressCallback
+): Promise<File> {
   try {
     console.log('Original file size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
     
-    const compressedFile = await imageCompression(file, COMPRESSION_OPTIONS);
+    onProgress?.({
+      stage: 'compressing',
+      progress: 0,
+      message: 'جاري ضغط الصورة...'
+    });
+    
+    const compressedFile = await imageCompression(file, {
+      ...COMPRESSION_OPTIONS,
+      onProgress: (percent) => {
+        onProgress?.({
+          stage: 'compressing',
+          progress: Math.round(percent),
+          message: `جاري ضغط الصورة... ${Math.round(percent)}%`
+        });
+      }
+    });
     
     console.log('Compressed file size:', (compressedFile.size / 1024 / 1024).toFixed(2), 'MB');
     console.log('Compression ratio:', ((1 - compressedFile.size / file.size) * 100).toFixed(1), '%');
@@ -122,14 +149,16 @@ interface CloudinaryUploadResponse {
  * رفع صورة مباشرة إلى Cloudinary من المتصفح مع folders صحيحة
  * @param file - الملف المراد رفعه
  * @param publicId - المعرف المحدد للصورة (مع المسار الكامل)
+ * @param onProgress - callback لتتبع التقدم
  */
 export async function uploadToCloudinary(
   file: File,
-  publicId: string
+  publicId: string,
+  onProgress?: ProgressCallback
 ): Promise<CloudinaryUploadResponse> {
   try {
     // ضغط الصورة قبل الرفع
-    const compressedFile = await compressImage(file);
+    const compressedFile = await compressImage(file, onProgress);
     
     // إضافة timestamp للـ public_id لجعله فريد في كل مرة
     const uniquePublicId = `${publicId}_${Date.now()}`;
@@ -157,21 +186,44 @@ export async function uploadToCloudinary(
       fileType: file.type 
     });
 
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    );
+    // استخدام XMLHttpRequest لتتبع تقدم الرفع
+    const data = await new Promise<CloudinaryUploadResponse>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          onProgress?.({
+            stage: 'uploading',
+            progress: percent,
+            message: `جاري رفع الصورة... ${percent}%`
+          });
+        }
+      });
+      
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const response = JSON.parse(xhr.responseText);
+          onProgress?.({
+            stage: 'done',
+            progress: 100,
+            message: 'تم رفع الصورة بنجاح!'
+          });
+          resolve(response);
+        } else {
+          console.error('Cloudinary upload failed:', xhr.status, xhr.responseText);
+          reject(new Error(`فشل رفع الصورة: ${xhr.status}`));
+        }
+      });
+      
+      xhr.addEventListener('error', () => {
+        reject(new Error('فشل الاتصال بالخادم'));
+      });
+      
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`);
+      xhr.send(formData);
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Cloudinary upload failed:', response.status, errorText);
-      throw new Error(`فشل رفع الصورة: ${response.status}`);
-    }
-
-    const data = await response.json();
     console.log('Cloudinary upload successful:', data);
     
     if (data.error) {

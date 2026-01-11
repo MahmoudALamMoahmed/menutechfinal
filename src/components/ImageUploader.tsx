@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, Trash2, Loader2, Image as ImageIcon } from 'lucide-react';
-import { uploadToCloudinary, deleteFromCloudinary, getOptimizedUrl } from '@/lib/cloudinary';
+import { Progress } from '@/components/ui/progress';
+import { Upload, Trash2, Loader2, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
+import { uploadToCloudinary, deleteFromCloudinary, getOptimizedUrl, UploadProgress } from '@/lib/cloudinary';
 import { cn } from '@/lib/utils';
 
 interface ImageUploaderProps {
@@ -29,6 +30,7 @@ export default function ImageUploader({
   const [deleting, setDeleting] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const aspectClasses = {
@@ -49,20 +51,31 @@ export default function ImageUploader({
     reader.readAsDataURL(file);
 
     setUploading(true);
+    setUploadProgress({ stage: 'compressing', progress: 0, message: 'جاري ضغط الصورة...' });
+    
     try {
       // Delete old image if exists
       if (currentPublicId) {
         await deleteFromCloudinary(currentPublicId);
       }
 
-      // Upload new image
-      const result = await uploadToCloudinary(file, publicId);
+      // Upload new image with progress tracking
+      const result = await uploadToCloudinary(file, publicId, (progress) => {
+        setUploadProgress(progress);
+      });
+      
       onUploadComplete(result.secure_url, result.public_id);
       setPreview(null);
+      
+      // Show success briefly
+      setTimeout(() => {
+        setUploadProgress(null);
+      }, 1500);
     } catch (error) {
       console.error('Upload error:', error);
       alert('حدث خطأ أثناء رفع الصورة');
       setPreview(null);
+      setUploadProgress(null);
     } finally {
       setUploading(false);
     }
@@ -136,8 +149,31 @@ export default function ImageUploader({
               className="w-full h-full object-cover"
             />
             {(uploading || deleting) && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-white animate-spin" />
+              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3 p-4">
+                {uploadProgress ? (
+                  <>
+                    {uploadProgress.stage === 'done' ? (
+                      <CheckCircle2 className="w-10 h-10 text-green-400" />
+                    ) : (
+                      <Loader2 className="w-8 h-8 text-white animate-spin" />
+                    )}
+                    <div className="w-full max-w-[200px] space-y-2">
+                      <Progress 
+                        value={uploadProgress.progress} 
+                        className="h-2 bg-white/20"
+                      />
+                      <p className="text-white text-sm text-center font-medium">
+                        {uploadProgress.message}
+                      </p>
+                      <p className="text-white/70 text-xs text-center">
+                        {uploadProgress.stage === 'compressing' ? 'مرحلة 1/2' : 
+                         uploadProgress.stage === 'uploading' ? 'مرحلة 2/2' : ''}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <Loader2 className="w-8 h-8 text-white animate-spin" />
+                )}
               </div>
             )}
           </>
