@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Trash2, Loader2, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
+import { Upload, Trash2, Loader2, Image as ImageIcon, CheckCircle2, Crop } from 'lucide-react';
 import { uploadToCloudinary, deleteFromCloudinary, getOptimizedUrl, UploadProgress } from '@/lib/cloudinary';
 import { cn } from '@/lib/utils';
+import ImageCropper from './ImageCropper';
 
 interface ImageUploaderProps {
   currentImageUrl?: string;
@@ -14,6 +15,7 @@ interface ImageUploaderProps {
   aspectRatio?: 'square' | 'cover' | 'logo';
   label?: string;
   className?: string;
+  enableCrop?: boolean;
 }
 
 export default function ImageUploader({
@@ -25,12 +27,15 @@ export default function ImageUploader({
   aspectRatio = 'square',
   label = 'رفع صورة',
   className,
+  enableCrop = true,
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const aspectClasses = {
@@ -39,11 +44,38 @@ export default function ImageUploader({
     logo: 'aspect-square max-w-[150px]',
   };
 
-  const handleFile = useCallback(async (file: File) => {
+  const aspectRatioValues = {
+    square: 1,
+    cover: 16 / 9,
+    logo: 1,
+  };
+
+  const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
       alert('يرجى اختيار صورة فقط');
       return;
     }
+
+    // Read file and show cropper if enabled
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageData = e.target?.result as string;
+      if (enableCrop) {
+        setSelectedImage(imageData);
+        setCropperOpen(true);
+      } else {
+        // Direct upload without cropping
+        handleUpload(file);
+      }
+    };
+    reader.readAsDataURL(file);
+  }, [enableCrop]);
+
+  const handleUpload = useCallback(async (fileOrBlob: File | Blob) => {
+    // Convert Blob to File if needed
+    const file = fileOrBlob instanceof File 
+      ? fileOrBlob 
+      : new File([fileOrBlob], 'cropped-image.jpg', { type: 'image/jpeg' });
 
     // Show preview
     const reader = new FileReader();
@@ -81,9 +113,22 @@ export default function ImageUploader({
     }
   }, [currentPublicId, publicId, onUploadComplete]);
 
+  const handleCropComplete = useCallback((croppedImage: Blob) => {
+    setSelectedImage(null);
+    handleUpload(croppedImage);
+  }, [handleUpload]);
+
+  const handleCropClose = useCallback(() => {
+    setCropperOpen(false);
+    setSelectedImage(null);
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleFile(file);
+    if (file) handleFileSelect(file);
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -102,7 +147,7 @@ export default function ImageUploader({
     setDragActive(false);
     
     const file = e.dataTransfer.files?.[0];
-    if (file) handleFile(file);
+    if (file) handleFileSelect(file);
   };
 
   const handleDelete = async () => {
@@ -233,6 +278,17 @@ export default function ImageUploader({
           </Button>
         )}
       </div>
+
+      {/* Image Cropper Dialog */}
+      {selectedImage && (
+        <ImageCropper
+          image={selectedImage}
+          open={cropperOpen}
+          onClose={handleCropClose}
+          onCropComplete={handleCropComplete}
+          aspectRatio={aspectRatioValues[aspectRatio]}
+        />
+      )}
     </div>
   );
 }
