@@ -8,9 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ChefHat, Mail, CheckCircle2 } from 'lucide-react';
+import { Loader2, ChefHat, Mail, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useUsernameAvailability } from '@/hooks/useAvailabilityCheck';
 import { AvailabilityIndicator } from '@/components/AvailabilityIndicator';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -22,12 +23,53 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   
+  // حالات إعادة إرسال رابط التأكيد
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
+  const [showResendOption, setShowResendOption] = useState(false);
+  
   const { signIn, signUp, user, ensureRestaurantExists } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // التحقق من توفر اسم المستخدم
   const usernameCheck = useUsernameAvailability(username);
+
+  // عداد تنازلي لإعادة الإرسال
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  // دالة إعادة إرسال رابط التأكيد
+  const handleResendConfirmation = async () => {
+    const targetEmail = pendingEmail || email;
+    if (!targetEmail) return;
+    
+    setIsResending(true);
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: targetEmail,
+    });
+    
+    if (error) {
+      toast({
+        title: 'خطأ',
+        description: 'فشل إعادة إرسال الرابط، حاول مرة أخرى لاحقاً',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'تم الإرسال',
+        description: 'تم إرسال رابط التأكيد مرة أخرى إلى بريدك الإلكتروني',
+      });
+      setResendCooldown(60);
+    }
+    setIsResending(false);
+  };
 
   // عند تسجيل الدخول، تأكد من وجود المطعم ثم وجه للصفحة المناسبة
   useEffect(() => {
@@ -56,12 +98,16 @@ export default function Auth() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setShowResendOption(false);
 
     const { error } = await signIn(email, password);
     
     if (error) {
       if (error.message === 'Email not confirmed') {
         setError('يرجى تأكيد بريدك الإلكتروني أولاً');
+        setPendingEmail(email);
+        setShowResendOption(true);
+        setResendCooldown(0); // يظهر الزر مباشرة
       } else if (error.message === 'Invalid login credentials') {
         setError('بيانات تسجيل الدخول غير صحيحة');
       } else {
@@ -132,6 +178,8 @@ export default function Auth() {
       }
     } else if (needsEmailConfirmation) {
       // عرض رسالة تأكيد الإيميل
+      setPendingEmail(email);
+      setResendCooldown(60); // بدء العداد التنازلي
       setShowEmailConfirmation(true);
     } else {
       // تسجيل تلقائي بدون تأكيد إيميل
@@ -176,6 +224,26 @@ export default function Auth() {
                 <p>• سيتم توجيهك تلقائياً لإكمال إعداد مطعمك</p>
               </div>
               
+              {/* زر إعادة إرسال رابط التأكيد */}
+              <div className="text-center mt-4 pt-4 border-t border-green-200">
+                {resendCooldown > 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    يمكنك إعادة الإرسال بعد {resendCooldown} ثانية
+                  </p>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    onClick={handleResendConfirmation}
+                    disabled={isResending}
+                    className="text-green-700 hover:text-green-800 hover:bg-green-100"
+                  >
+                    {isResending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                    <RefreshCw className="ml-2 h-4 w-4" />
+                    إعادة إرسال رابط التأكيد
+                  </Button>
+                )}
+              </div>
+              
               <Button 
                 variant="outline" 
                 className="w-full mt-4"
@@ -186,6 +254,8 @@ export default function Auth() {
                   setConfirmPassword('');
                   setUsername('');
                   setRestaurantName('');
+                  setResendCooldown(0);
+                  setPendingEmail('');
                 }}
               >
                 العودة لتسجيل الدخول
@@ -255,8 +325,31 @@ export default function Auth() {
                     </Alert>
                   )}
                   
+                  {/* زر إعادة إرسال رابط التأكيد عند تسجيل الدخول بحساب غير مؤكد */}
+                  {showResendOption && (
+                    <div className="text-center py-2">
+                      {resendCooldown > 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          يمكنك إعادة الإرسال بعد {resendCooldown} ثانية
+                        </p>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="link"
+                          onClick={handleResendConfirmation}
+                          disabled={isResending}
+                          className="text-primary"
+                        >
+                          {isResending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                          <RefreshCw className="ml-2 h-4 w-4" />
+                          إعادة إرسال رابط التأكيد
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
                     تسجيل الدخول
                   </Button>
                 </form>
