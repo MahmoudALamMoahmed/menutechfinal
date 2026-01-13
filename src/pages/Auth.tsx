@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ChefHat } from 'lucide-react';
+import { Loader2, ChefHat, Mail, CheckCircle2 } from 'lucide-react';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -18,17 +18,34 @@ export default function Auth() {
   const [restaurantName, setRestaurantName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, ensureRestaurantExists } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // توجيه المستخدم المسجل للصفحة الرئيسية
+  // عند تسجيل الدخول، تأكد من وجود المطعم ثم وجه للصفحة المناسبة
   useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
+    const handleUserSession = async () => {
+      if (user) {
+        // محاولة إنشاء المطعم إذا لم يكن موجوداً
+        const { created, error } = await ensureRestaurantExists();
+        
+        if (created) {
+          toast({
+            title: 'تم إعداد مطعمك بنجاح',
+            description: 'مرحباً بك في منصة المطاعم',
+          });
+        }
+        
+        if (!error || error.message === 'No pending restaurant data found') {
+          navigate('/');
+        }
+      }
+    };
+    
+    handleUserSession();
+  }, [user, navigate, ensureRestaurantExists, toast]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,11 +55,13 @@ export default function Auth() {
     const { error } = await signIn(email, password);
     
     if (error) {
-      setError(
-        error.message === 'Invalid login credentials'
-          ? 'بيانات تسجيل الدخول غير صحيحة'
-          : 'حدث خطأ أثناء تسجيل الدخول'
-      );
+      if (error.message === 'Email not confirmed') {
+        setError('يرجى تأكيد بريدك الإلكتروني أولاً');
+      } else if (error.message === 'Invalid login credentials') {
+        setError('بيانات تسجيل الدخول غير صحيحة');
+      } else {
+        setError('حدث خطأ أثناء تسجيل الدخول');
+      }
     } else {
       toast({
         title: 'تم تسجيل الدخول بنجاح',
@@ -57,9 +76,17 @@ export default function Auth() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setShowEmailConfirmation(false);
 
     if (!username.trim()) {
       setError('اسم المستخدم مطلوب');
+      setIsLoading(false);
+      return;
+    }
+
+    // التحقق من صيغة اسم المستخدم (حروف إنجليزية وأرقام فقط)
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+      setError('اسم المستخدم يجب أن يحتوي على حروف إنجليزية وأرقام فقط');
       setIsLoading(false);
       return;
     }
@@ -82,7 +109,7 @@ export default function Auth() {
       return;
     }
 
-    const { error } = await signUp(email, password, username, restaurantName);
+    const { error, needsEmailConfirmation } = await signUp(email, password, username, restaurantName);
     
     if (error) {
       if (error.message.includes('already registered')) {
@@ -90,7 +117,11 @@ export default function Auth() {
       } else {
         setError('حدث خطأ أثناء إنشاء الحساب');
       }
+    } else if (needsEmailConfirmation) {
+      // عرض رسالة تأكيد الإيميل
+      setShowEmailConfirmation(true);
     } else {
+      // تسجيل تلقائي بدون تأكيد إيميل
       toast({
         title: 'تم إنشاء الحساب بنجاح',
         description: 'مرحباً بك في منصة المطاعم',
@@ -99,6 +130,59 @@ export default function Auth() {
     
     setIsLoading(false);
   };
+
+  // شاشة تأكيد الإيميل
+  if (showEmailConfirmation) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center p-4" dir="rtl">
+        <div className="w-full max-w-md">
+          <Card className="border-green-200 bg-green-50/50">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <div className="bg-green-500 text-white rounded-full p-4">
+                  <Mail size={40} />
+                </div>
+              </div>
+              <CardTitle className="text-2xl text-green-800">تم إنشاء الحساب بنجاح!</CardTitle>
+              <CardDescription className="text-green-700 text-base mt-2">
+                يرجى التوجه إلى بريدك الإلكتروني لتأكيد الحساب
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <CheckCircle2 className="text-green-500" size={20} />
+                  <span className="font-medium">تم إرسال رابط التأكيد إلى:</span>
+                </div>
+                <p className="text-primary font-bold text-lg mr-8">{email}</p>
+              </div>
+              
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p>• تحقق من صندوق الوارد أو مجلد الرسائل غير المرغوب فيها</p>
+                <p>• انقر على رابط التأكيد في الرسالة</p>
+                <p>• سيتم توجيهك تلقائياً لإكمال إعداد مطعمك</p>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                className="w-full mt-4"
+                onClick={() => {
+                  setShowEmailConfirmation(false);
+                  setEmail('');
+                  setPassword('');
+                  setConfirmPassword('');
+                  setUsername('');
+                  setRestaurantName('');
+                }}
+              >
+                العودة لتسجيل الدخول
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center p-4" dir="rtl">
@@ -179,15 +263,20 @@ export default function Auth() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="username">اسم المستخدم</Label>
+                    <Label htmlFor="username">اسم المستخدم (رابط المطعم)</Label>
                     <Input
                       id="username"
                       type="text"
                       value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      onChange={(e) => setUsername(e.target.value.toLowerCase())}
                       required
-                      placeholder="اسم المستخدم الخاص بك"
+                      placeholder="my-restaurant"
+                      className="text-left"
+                      dir="ltr"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      سيكون رابط مطعمك: /{username || 'اسم-المستخدم'}
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">البريد الإلكتروني</Label>
