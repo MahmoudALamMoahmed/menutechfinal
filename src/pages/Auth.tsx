@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ChefHat, Mail, CheckCircle2 } from 'lucide-react';
-import { useUsernameAvailability, useEmailAvailability } from '@/hooks/useAvailabilityCheck';
+import { useUsernameAvailability } from '@/hooks/useAvailabilityCheck';
 import { AvailabilityIndicator } from '@/components/AvailabilityIndicator';
 
 export default function Auth() {
@@ -26,9 +26,8 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // التحقق من توفر اسم المستخدم والإيميل
+  // التحقق من توفر اسم المستخدم
   const usernameCheck = useUsernameAvailability(username);
-  const emailCheck = useEmailAvailability(email);
 
   // عند تسجيل الدخول، تأكد من وجود المطعم ثم وجه للصفحة المناسبة
   useEffect(() => {
@@ -104,12 +103,6 @@ export default function Auth() {
       return;
     }
 
-    // التحقق من توفر الإيميل
-    if (emailCheck.status === 'taken') {
-      setError('البريد الإلكتروني مستخدم بالفعل');
-      setIsLoading(false);
-      return;
-    }
 
     if (!restaurantName.trim()) {
       setError('اسم المطعم مطلوب');
@@ -309,7 +302,6 @@ export default function Auth() {
                       required
                       placeholder="example@restaurant.com"
                     />
-                    <AvailabilityIndicator status={emailCheck.status} message={emailCheck.message} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">كلمة المرور</Label>
