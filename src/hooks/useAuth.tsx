@@ -106,31 +106,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // إعداد مستمع حالة المصادقة
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        // تحديث الحالة بشكل متزامن فقط - لا await هنا!
         setSession(session);
         setUser(session?.user ?? null);
+        setLoading(false);
         
+        // استخدام setTimeout لتأجيل استدعاءات Supabase ومنع deadlock
         if (session?.user) {
-          // جلب اسم المستخدم عند تسجيل الدخول
-          await fetchUsername(session.user.id);
+          setTimeout(() => {
+            fetchUsername(session.user.id);
+          }, 0);
         } else {
           setUsername(null);
         }
-        
-        setLoading(false);
       }
     );
 
     // التحقق من الجلسة الحالية
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
       
       if (session?.user) {
-        await fetchUsername(session.user.id);
+        setTimeout(() => {
+          fetchUsername(session.user.id);
+        }, 0);
       }
-      
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
