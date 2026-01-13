@@ -71,60 +71,6 @@ export function useUsernameAvailability(username: string): UseAvailabilityCheckR
   return { status, message };
 }
 
-// التحقق من توفر البريد الإلكتروني
-export function useEmailAvailability(email: string): UseAvailabilityCheckResult {
-  const [status, setStatus] = useState<AvailabilityStatus>('idle');
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    // إعادة تعيين الحالة إذا كان الحقل فارغاً
-    if (!email.trim()) {
-      setStatus('idle');
-      setMessage('');
-      return;
-    }
-
-    // التحقق من صحة صيغة الإيميل
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setStatus('invalid');
-      setMessage('صيغة البريد الإلكتروني غير صحيحة');
-      return;
-    }
-
-    // بدء التحقق
-    setStatus('checking');
-    setMessage('جاري التحقق...');
-
-    const timeoutId = setTimeout(async () => {
-      try {
-        const { data, error } = await supabase
-          .from('restaurants')
-          .select('id')
-          .eq('email', email.toLowerCase())
-          .maybeSingle();
-
-        if (error) {
-          setStatus('idle');
-          setMessage('');
-          return;
-        }
-
-        if (data) {
-          setStatus('taken');
-          setMessage('البريد الإلكتروني مستخدم بالفعل');
-        } else {
-          setStatus('available');
-          setMessage('البريد الإلكتروني متاح');
-        }
-      } catch {
-        setStatus('idle');
-        setMessage('');
-      }
-    }, 500); // debounce 500ms
-
-    return () => clearTimeout(timeoutId);
-  }, [email]);
-
-  return { status, message };
-}
+// ملاحظة: التحقق من توفر البريد الإلكتروني غير ممكن من الـ client
+// لأن الإيميلات محفوظة في auth.users وهو جدول محمي
+// التحقق يتم تلقائياً عند محاولة التسجيل ويظهر خطأ "already registered"
