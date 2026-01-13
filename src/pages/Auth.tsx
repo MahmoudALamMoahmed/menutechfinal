@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ChefHat, Mail, CheckCircle2 } from 'lucide-react';
+import { useUsernameAvailability, useEmailAvailability } from '@/hooks/useAvailabilityCheck';
+import { AvailabilityIndicator } from '@/components/AvailabilityIndicator';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -23,6 +25,10 @@ export default function Auth() {
   const { signIn, signUp, user, ensureRestaurantExists } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // التحقق من توفر اسم المستخدم والإيميل
+  const usernameCheck = useUsernameAvailability(username);
+  const emailCheck = useEmailAvailability(email);
 
   // عند تسجيل الدخول، تأكد من وجود المطعم ثم وجه للصفحة المناسبة
   useEffect(() => {
@@ -87,6 +93,20 @@ export default function Auth() {
     // التحقق من صيغة اسم المستخدم (حروف إنجليزية وأرقام فقط)
     if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
       setError('اسم المستخدم يجب أن يحتوي على حروف إنجليزية وأرقام فقط');
+      setIsLoading(false);
+      return;
+    }
+
+    // التحقق من توفر اسم المستخدم
+    if (usernameCheck.status === 'taken') {
+      setError('اسم المستخدم مستخدم بالفعل، يرجى اختيار اسم آخر');
+      setIsLoading(false);
+      return;
+    }
+
+    // التحقق من توفر الإيميل
+    if (emailCheck.status === 'taken') {
+      setError('البريد الإلكتروني مستخدم بالفعل');
       setIsLoading(false);
       return;
     }
@@ -274,6 +294,7 @@ export default function Auth() {
                       className="text-left"
                       dir="ltr"
                     />
+                    <AvailabilityIndicator status={usernameCheck.status} message={usernameCheck.message} />
                     <p className="text-xs text-muted-foreground">
                       سيكون رابط مطعمك: /{username || 'اسم-المستخدم'}
                     </p>
@@ -288,6 +309,7 @@ export default function Auth() {
                       required
                       placeholder="example@restaurant.com"
                     />
+                    <AvailabilityIndicator status={emailCheck.status} message={emailCheck.message} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">كلمة المرور</Label>
