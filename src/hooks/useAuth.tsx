@@ -149,28 +149,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, username: string, restaurantName: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl
-      }
+        emailRedirectTo: redirectUrl,
+      },
     });
 
     if (error) {
       return { error, needsEmailConfirmation: false };
     }
 
-    // حفظ بيانات المطعم في التخزين المحلي لإنشائها لاحقاً بعد التأكيد
+    // في بعض إعدادات المصادقة يتم إرجاع نجاح بدون إرسال إيميل إذا كان البريد مسجلاً مسبقاً
+    // يتم تمييز ذلك عادةً بأن identities تكون مصفوفة فارغة
+    const identities = data.user?.identities;
+    const isAlreadyRegistered = Array.isArray(identities) && identities.length === 0;
+    if (isAlreadyRegistered) {
+      return {
+        error: { message: 'User already registered' },
+        needsEmailConfirmation: false,
+      };
+    }
+
+    if (!data.user) {
+      return {
+        error: { message: 'Unexpected signup response' },
+        needsEmailConfirmation: false,
+      };
+    }
+
+    // حفظ بيانات المطعم في التخزين المحلي لإنشائها لاحقاً بعد التأكيد/الدخول
     const pendingData: PendingRestaurant = { username, restaurantName };
     localStorage.setItem(PENDING_RESTAURANT_KEY, JSON.stringify(pendingData));
 
-    // تحقق من حالة تأكيد الإيميل
-    // إذا كان identities فارغاً أو user_metadata.email_confirmed = false، يعني يحتاج تأكيد
-    const needsEmailConfirmation = !data.session || (data.user && data.user.identities?.length === 0);
-    
-    return { error: null, needsEmailConfirmation: !!needsEmailConfirmation };
+    // إذا لم يتم إرجاع session فهذا يعني غالباً أن المستخدم يحتاج لتأكيد الإيميل
+    const needsEmailConfirmation = !data.session;
+
+    return { error: null, needsEmailConfirmation };
   };
 
   const signOut = async () => {
