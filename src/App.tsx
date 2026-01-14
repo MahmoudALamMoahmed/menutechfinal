@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
 import Restaurant from "./pages/Restaurant";
 import Dashboard from "./pages/Dashboard";
 import MenuManagement from "./pages/MenuManagement";
@@ -26,6 +27,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/:username" element={<Restaurant />} />
             <Route path="/:username/dashboard" element={<Dashboard />} />
             <Route path="/:username/menu-management" element={<MenuManagement />} />
