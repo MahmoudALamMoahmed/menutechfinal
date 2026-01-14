@@ -18,12 +18,11 @@ const getPasswordStrength = (password: string) => {
   let strength = 0;
   if (password.length >= 6) strength++;
   if (password.length >= 8) strength++;
-  if (/[A-Z]/.test(password)) strength++;
   if (/[0-9]/.test(password)) strength++;
   if (/[^A-Za-z0-9]/.test(password)) strength++;
   
-  if (strength <= 2) return { level: 'weak', label: 'ضعيفة', color: 'bg-red-500', width: '33%' };
-  if (strength <= 3) return { level: 'medium', label: 'متوسطة', color: 'bg-yellow-500', width: '66%' };
+  if (strength <= 1) return { level: 'weak', label: 'ضعيفة', color: 'bg-red-500', width: '33%' };
+  if (strength <= 2) return { level: 'medium', label: 'متوسطة', color: 'bg-yellow-500', width: '66%' };
   return { level: 'strong', label: 'قوية', color: 'bg-green-500', width: '100%' };
 };
 
@@ -506,10 +505,6 @@ export default function Auth() {
                           <p className={`flex items-center gap-1 ${password.length >= 6 ? 'text-green-600' : ''}`}>
                             {password.length >= 6 ? <Check size={12} /> : <X size={12} />}
                             6 أحرف على الأقل
-                          </p>
-                          <p className={`flex items-center gap-1 ${/[A-Z]/.test(password) ? 'text-green-600' : ''}`}>
-                            {/[A-Z]/.test(password) ? <Check size={12} /> : <X size={12} />}
-                            حرف كبير واحد على الأقل
                           </p>
                           <p className={`flex items-center gap-1 ${/[0-9]/.test(password) ? 'text-green-600' : ''}`}>
                             {/[0-9]/.test(password) ? <Check size={12} /> : <X size={12} />}
