@@ -8,10 +8,50 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ChefHat, Mail, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Loader2, ChefHat, Mail, CheckCircle2, RefreshCw, Eye, EyeOff, Check, X } from 'lucide-react';
 import { useUsernameAvailability } from '@/hooks/useAvailabilityCheck';
 import { AvailabilityIndicator } from '@/components/AvailabilityIndicator';
 import { supabase } from '@/integrations/supabase/client';
+
+// دالة حساب قوة كلمة المرور
+const getPasswordStrength = (password: string) => {
+  let strength = 0;
+  if (password.length >= 6) strength++;
+  if (password.length >= 8) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  if (/[^A-Za-z0-9]/.test(password)) strength++;
+  
+  if (strength <= 2) return { level: 'weak', label: 'ضعيفة', color: 'bg-red-500', width: '33%' };
+  if (strength <= 3) return { level: 'medium', label: 'متوسطة', color: 'bg-yellow-500', width: '66%' };
+  return { level: 'strong', label: 'قوية', color: 'bg-green-500', width: '100%' };
+};
+
+// دالة تحسين رسائل الخطأ
+const getErrorMessage = (error: any): string => {
+  const message = error?.message || '';
+  
+  if (message.includes('Invalid login credentials')) {
+    return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+  }
+  if (message.includes('Email not confirmed')) {
+    return 'يرجى تأكيد بريدك الإلكتروني أولاً. تحقق من صندوق الوارد';
+  }
+  if (message.includes('already registered') || message.includes('User already registered')) {
+    return 'هذا البريد مسجل بالفعل. جرب تسجيل الدخول أو استعادة كلمة المرور';
+  }
+  if (message.includes('rate limit') || message.includes('Rate limit exceeded')) {
+    return 'تم تجاوز الحد المسموح. انتظر قليلاً ثم حاول مرة أخرى';
+  }
+  if (message.includes('weak password') || message.includes('Password')) {
+    return 'كلمة المرور ضعيفة جداً. استخدم كلمة مرور أقوى';
+  }
+  if (message.includes('Invalid email')) {
+    return 'صيغة البريد الإلكتروني غير صحيحة';
+  }
+  
+  return 'حدث خطأ غير متوقع. حاول مرة أخرى';
+};
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -23,11 +63,18 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   
+  // حالات إظهار/إخفاء كلمة المرور
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
   // حالات إعادة إرسال رابط التأكيد
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
   const [showResendOption, setShowResendOption] = useState(false);
+  
+  // حساب قوة كلمة المرور
+  const passwordStrength = getPasswordStrength(password);
   
   const { signIn, signUp, user, ensureRestaurantExists } = useAuth();
   const { toast } = useToast();
@@ -103,15 +150,11 @@ export default function Auth() {
     const { error } = await signIn(email, password);
     
     if (error) {
+      setError(getErrorMessage(error));
       if (error.message === 'Email not confirmed') {
-        setError('يرجى تأكيد بريدك الإلكتروني أولاً');
         setPendingEmail(email);
         setShowResendOption(true);
-        setResendCooldown(0); // يظهر الزر مباشرة
-      } else if (error.message === 'Invalid login credentials') {
-        setError('بيانات تسجيل الدخول غير صحيحة');
-      } else {
-        setError('حدث خطأ أثناء تسجيل الدخول');
+        setResendCooldown(0);
       }
     } else {
       toast({
@@ -171,11 +214,7 @@ export default function Auth() {
     const { error, needsEmailConfirmation } = await signUp(email, password, username, restaurantName);
     
     if (error) {
-      if (error.message.includes('already registered')) {
-        setError('هذا البريد الإلكتروني مسجل بالفعل');
-      } else {
-        setError('حدث خطأ أثناء إنشاء الحساب');
-      }
+      setError(getErrorMessage(error));
     } else if (needsEmailConfirmation) {
       // عرض رسالة تأكيد الإيميل
       setPendingEmail(email);
@@ -304,19 +343,32 @@ export default function Auth() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      disabled={isLoading}
                       placeholder="example@restaurant.com"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">كلمة المرور</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      placeholder="••••••••"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={isLoading}
+                        placeholder="••••••••"
+                        className="pl-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
                   
                   {error && (
@@ -374,6 +426,7 @@ export default function Auth() {
                       value={restaurantName}
                       onChange={(e) => setRestaurantName(e.target.value)}
                       required
+                      disabled={isLoading}
                       placeholder="اسم مطعمك"
                     />
                   </div>
@@ -385,6 +438,7 @@ export default function Auth() {
                       value={username}
                       onChange={(e) => setUsername(e.target.value.toLowerCase())}
                       required
+                      disabled={isLoading}
                       placeholder="my-restaurant"
                       className="text-left"
                       dir="ltr"
@@ -402,30 +456,103 @@ export default function Auth() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      disabled={isLoading}
                       placeholder="example@restaurant.com"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">كلمة المرور</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      placeholder="••••••••"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="signup-password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={isLoading}
+                        placeholder="••••••••"
+                        className="pl-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    
+                    {/* مؤشر قوة كلمة المرور */}
+                    {password && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                              style={{ width: passwordStrength.width }}
+                            />
+                          </div>
+                          <span className={`text-xs font-medium ${
+                            passwordStrength.level === 'weak' ? 'text-red-500' : 
+                            passwordStrength.level === 'medium' ? 'text-yellow-600' : 'text-green-600'
+                          }`}>
+                            {passwordStrength.label}
+                          </span>
+                        </div>
+                        
+                        {/* متطلبات كلمة المرور */}
+                        <div className="text-xs space-y-1 text-muted-foreground">
+                          <p className={`flex items-center gap-1 ${password.length >= 6 ? 'text-green-600' : ''}`}>
+                            {password.length >= 6 ? <Check size={12} /> : <X size={12} />}
+                            6 أحرف على الأقل
+                          </p>
+                          <p className={`flex items-center gap-1 ${/[A-Z]/.test(password) ? 'text-green-600' : ''}`}>
+                            {/[A-Z]/.test(password) ? <Check size={12} /> : <X size={12} />}
+                            حرف كبير واحد على الأقل
+                          </p>
+                          <p className={`flex items-center gap-1 ${/[0-9]/.test(password) ? 'text-green-600' : ''}`}>
+                            {/[0-9]/.test(password) ? <Check size={12} /> : <X size={12} />}
+                            رقم واحد على الأقل
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirm-password">تأكيد كلمة المرور</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                      placeholder="••••••••"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="confirm-password"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        disabled={isLoading}
+                        placeholder="••••••••"
+                        className="pl-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    {confirmPassword && password !== confirmPassword && (
+                      <p className="text-xs text-red-500 flex items-center gap-1">
+                        <X size={12} />
+                        كلمات المرور غير متطابقة
+                      </p>
+                    )}
+                    {confirmPassword && password === confirmPassword && (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <Check size={12} />
+                        كلمات المرور متطابقة
+                      </p>
+                    )}
                   </div>
                   
                   {error && (
