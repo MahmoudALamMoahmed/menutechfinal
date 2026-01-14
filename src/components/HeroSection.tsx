@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Star, Users, Zap } from "lucide-react";
+
 const HeroSection = () => {
-  return <section className="relative min-h-screen bg-gradient-hero flex items-center justify-center overflow-hidden">
+  return (
+    <section className="relative min-h-screen bg-gradient-hero flex items-center justify-center overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-primary/10"></div>
       <div className="absolute top-20 right-20 w-32 h-32 bg-secondary/20 rounded-full blur-3xl"></div>
@@ -48,11 +50,18 @@ const HeroSection = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-secondary text-black hover:bg-secondary/90 font-cairo font-semibold text-lg px-8 py-6 rounded-2xl shadow-glow transition-all duration-300 hover:scale-105">
+              <Button 
+                size="lg" 
+                className="bg-secondary text-black hover:bg-secondary/90 font-cairo font-semibold text-lg px-8 py-6 rounded-2xl shadow-glow transition-all duration-300 hover:scale-105"
+              >
                 ابدأ الآن مجاناً
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
-              <Button variant="outline" size="lg" className="border-2 border-white/30 text-white font-cairo font-semibold text-lg px-8 py-6 rounded-2xl backdrop-blur-sm bg-white">
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="border-2 border-white/30 text-white hover:bg-white/10 font-cairo font-semibold text-lg px-8 py-6 rounded-2xl backdrop-blur-sm"
+              >
                 شاهد العرض التوضيحي
               </Button>
             </div>
@@ -60,7 +69,9 @@ const HeroSection = () => {
             {/* Social Proof */}
             <div className="flex items-center justify-center gap-3 text-white/80">
               <div className="flex">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-secondary text-secondary" />)}
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 fill-secondary text-secondary" />
+                ))}
               </div>
               <span className="font-tajawal text-sm">4.9/5 من 200+ تقييم</span>
             </div>
@@ -83,29 +94,25 @@ const HeroSection = () => {
                     
                     {/* Menu Items */}
                     <div className="space-y-3">
-                      {[{
-                      name: "مندي لحم",
-                      price: "45 ريال",
-                      popular: true
-                    }, {
-                      name: "كبسة دجاج",
-                      price: "35 ريال",
-                      popular: false
-                    }, {
-                      name: "ملوخية بالفراخ",
-                      price: "40 ريال",
-                      popular: false
-                    }].map((item, index) => <div key={index} className="bg-white rounded-xl p-3 shadow-card border border-gray-100">
+                      {[
+                        { name: "مندي لحم", price: "45 ريال", popular: true },
+                        { name: "كبسة دجاج", price: "35 ريال", popular: false },
+                        { name: "ملوخية بالفراخ", price: "40 ريال", popular: false },
+                      ].map((item, index) => (
+                        <div key={index} className="bg-white rounded-xl p-3 shadow-card border border-gray-100">
                           <div className="flex justify-between items-center">
                             <div className="text-right">
                               <h4 className="font-cairo font-semibold text-gray-800">{item.name}</h4>
                               <p className="font-tajawal text-primary font-bold">{item.price}</p>
                             </div>
-                            {item.popular && <span className="bg-secondary text-black text-xs px-2 py-1 rounded-full font-cairo">
+                            {item.popular && (
+                              <span className="bg-secondary text-black text-xs px-2 py-1 rounded-full font-cairo">
                                 الأكثر طلباً
-                              </span>}
+                              </span>
+                            )}
                           </div>
-                        </div>)}
+                        </div>
+                      ))}
                     </div>
 
                     {/* WhatsApp Button */}
@@ -132,6 +139,8 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default HeroSection;
