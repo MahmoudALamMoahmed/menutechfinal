@@ -210,6 +210,12 @@ export default function Auth() {
       return;
     }
 
+    if (!/[0-9]/.test(password)) {
+      setError('كلمة المرور يجب أن تحتوي على رقم واحد على الأقل');
+      setIsLoading(false);
+      return;
+    }
+
     const { error, needsEmailConfirmation } = await signUp(email, password, username, restaurantName);
     
     if (error) {
