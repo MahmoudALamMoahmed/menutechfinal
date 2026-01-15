@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import ImageUploader from '@/components/ImageUploader';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import { getMenuItemPublicId, deleteFromCloudinary } from '@/lib/cloudinary';
 import { 
   ArrowLeft,
@@ -124,6 +125,15 @@ export default function MenuManagement() {
   const [editingSize, setEditingSize] = useState<Size | null>(null);
   const [editingExtra, setEditingExtra] = useState<Extra | null>(null);
   const [itemSearchQuery, setItemSearchQuery] = useState('');
+  
+  // Delete confirmation states
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    type: 'category' | 'item' | 'size' | 'extra';
+    id: string;
+    name: string;
+  }>({ open: false, type: 'category', id: '', name: '' });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -330,8 +340,7 @@ export default function MenuManagement() {
   };
 
   const handleDeleteCategory = async (categoryId: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا القسم؟')) return;
-    
+    setIsDeleting(true);
     try {
       const { error } = await supabase
         .from('categories')
@@ -345,6 +354,7 @@ export default function MenuManagement() {
         description: 'تم حذف القسم بنجاح',
       });
       
+      setDeleteDialog({ open: false, type: 'category', id: '', name: '' });
       await fetchData();
     } catch (error) {
       console.error('Error deleting category:', error);
@@ -353,12 +363,13 @@ export default function MenuManagement() {
         description: 'حدث خطأ أثناء حذف القسم',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الصنف؟')) return;
-    
+    setIsDeleting(true);
     try {
       // Find the item to get its image public_id
       const item = menuItems.find(i => i.id === itemId);
@@ -385,6 +396,7 @@ export default function MenuManagement() {
         description: 'تم حذف الصنف بنجاح',
       });
       
+      setDeleteDialog({ open: false, type: 'item', id: '', name: '' });
       await fetchData();
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -393,6 +405,8 @@ export default function MenuManagement() {
         description: 'حدث خطأ أثناء حذف الصنف',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -454,8 +468,7 @@ export default function MenuManagement() {
   };
 
   const handleDeleteSize = async (sizeId: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الحجم؟')) return;
-    
+    setIsDeleting(true);
     try {
       const { error } = await supabase
         .from('sizes')
@@ -469,6 +482,7 @@ export default function MenuManagement() {
         description: 'تم حذف الحجم بنجاح',
       });
       
+      setDeleteDialog({ open: false, type: 'size', id: '', name: '' });
       await fetchData();
     } catch (error) {
       console.error('Error deleting size:', error);
@@ -477,6 +491,8 @@ export default function MenuManagement() {
         description: 'حدث خطأ أثناء حذف الحجم',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -547,8 +563,7 @@ export default function MenuManagement() {
   };
 
   const handleDeleteExtra = async (extraId: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذه الإضافة؟')) return;
-    
+    setIsDeleting(true);
     try {
       const { error } = await supabase
         .from('extras')
@@ -562,6 +577,7 @@ export default function MenuManagement() {
         description: 'تم حذف الإضافة بنجاح',
       });
       
+      setDeleteDialog({ open: false, type: 'extra', id: '', name: '' });
       await fetchData();
     } catch (error) {
       console.error('Error deleting extra:', error);
@@ -570,6 +586,8 @@ export default function MenuManagement() {
         description: 'حدث خطأ أثناء حذف الإضافة',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -702,7 +720,12 @@ export default function MenuManagement() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleDeleteCategory(category.id)}
+                        onClick={() => setDeleteDialog({
+                          open: true,
+                          type: 'category',
+                          id: category.id,
+                          name: category.name
+                        })}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -898,7 +921,12 @@ export default function MenuManagement() {
                        <Button
                          size="sm"
                          variant="outline"
-                         onClick={() => handleDeleteItem(item.id)}
+                         onClick={() => setDeleteDialog({
+                           open: true,
+                           type: 'item',
+                           id: item.id,
+                           name: item.name
+                         })}
                        >
                          <Trash2 className="w-4 h-4" />
                        </Button>
@@ -1024,7 +1052,12 @@ export default function MenuManagement() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDeleteSize(size.id)}
+                      onClick={() => setDeleteDialog({
+                        open: true,
+                        type: 'size',
+                        id: size.id,
+                        name: size.name
+                      })}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -1123,7 +1156,12 @@ export default function MenuManagement() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDeleteExtra(extra.id)}
+                      onClick={() => setDeleteDialog({
+                        open: true,
+                        type: 'extra',
+                        id: extra.id,
+                        name: extra.name
+                      })}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -1137,6 +1175,35 @@ export default function MenuManagement() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+        onConfirm={() => {
+          switch (deleteDialog.type) {
+            case 'category':
+              handleDeleteCategory(deleteDialog.id);
+              break;
+            case 'item':
+              handleDeleteItem(deleteDialog.id);
+              break;
+            case 'size':
+              handleDeleteSize(deleteDialog.id);
+              break;
+            case 'extra':
+              handleDeleteExtra(deleteDialog.id);
+              break;
+          }
+        }}
+        title={
+          deleteDialog.type === 'category' ? 'حذف القسم' :
+          deleteDialog.type === 'item' ? 'حذف الصنف' :
+          deleteDialog.type === 'size' ? 'حذف الحجم' : 'حذف الإضافة'
+        }
+        description={`هل أنت متأكد من حذف "${deleteDialog.name}"؟ لا يمكن التراجع عن هذا الإجراء.`}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
