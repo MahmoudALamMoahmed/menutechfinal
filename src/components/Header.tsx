@@ -62,7 +62,7 @@ const Header = () => {
                   تسجيل الخروج
                 </Button>
               </div> : <>
-                <Button variant="ghost" size="sm" className="font-cairo hover:bg-primary text-primary" onClick={() => navigate('/auth')}>
+                <Button variant="ghost" size="sm" className="font-cairo hover:bg-primary text-primary hover:text-white" onClick={() => navigate('/auth')}>
                   تسجيل الدخول
                 </Button>
                 <Button className="bg-success hover:bg-success/90 text-white font-cairo px-6" onClick={() => navigate('/auth')}>
