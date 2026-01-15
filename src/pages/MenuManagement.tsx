@@ -141,6 +141,7 @@ export default function MenuManagement() {
   const [editingSize, setEditingSize] = useState<Size | null>(null);
   const [editingExtra, setEditingExtra] = useState<Extra | null>(null);
   const [itemSearchQuery, setItemSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   
   // Delete confirmation states
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -940,15 +941,31 @@ export default function MenuManagement() {
                 </Button>
               </div>
               
-              {/* Search Box */}
-              <div className="relative mt-4">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="ابحث عن صنف..."
-                  value={itemSearchQuery}
-                  onChange={(e) => setItemSearchQuery(e.target.value)}
-                  className="pr-9 h-9 text-sm"
-                />
+              {/* Search and Filter */}
+              <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                <div className="relative flex-1">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="ابحث عن صنف..."
+                    value={itemSearchQuery}
+                    onChange={(e) => setItemSearchQuery(e.target.value)}
+                    className="pr-9 h-9 text-sm"
+                  />
+                </div>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-full sm:w-[180px] h-9">
+                    <SelectValue placeholder="جميع الفئات" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الفئات</SelectItem>
+                    <SelectItem value="none">بدون فئة</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1063,19 +1080,27 @@ export default function MenuManagement() {
               >
                 <SortableContext
                   items={menuItems
-                    .filter(item => 
-                      item.name.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
-                      item.description?.toLowerCase().includes(itemSearchQuery.toLowerCase())
-                    )
+                    .filter(item => {
+                      const matchesSearch = item.name.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
+                        item.description?.toLowerCase().includes(itemSearchQuery.toLowerCase());
+                      const matchesCategory = categoryFilter === 'all' || 
+                        (categoryFilter === 'none' && !item.category_id) ||
+                        item.category_id === categoryFilter;
+                      return matchesSearch && matchesCategory;
+                    })
                     .map(item => item.id)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2 max-h-[600px] overflow-y-auto">
                     {menuItems
-                      .filter(item => 
-                        item.name.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
-                        item.description?.toLowerCase().includes(itemSearchQuery.toLowerCase())
-                      )
+                      .filter(item => {
+                        const matchesSearch = item.name.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
+                          item.description?.toLowerCase().includes(itemSearchQuery.toLowerCase());
+                        const matchesCategory = categoryFilter === 'all' || 
+                          (categoryFilter === 'none' && !item.category_id) ||
+                          item.category_id === categoryFilter;
+                        return matchesSearch && matchesCategory;
+                      })
                       .map((item) => (
                         <SortableItem key={item.id} id={item.id}>
                           <div className="flex items-center justify-between">
