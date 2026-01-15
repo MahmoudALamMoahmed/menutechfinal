@@ -28,16 +28,16 @@ export function SortableItem({ id, children }: SortableItemProps) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 bg-white border rounded-lg group"
+      className="flex items-center bg-white border rounded-lg group"
     >
       <button
-        className="p-3 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+        className="px-2 py-3 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none flex-shrink-0"
         {...attributes}
         {...listeners}
       >
         <GripVertical className="w-4 h-4" />
       </button>
-      <div className="flex-1 py-3 pr-3">{children}</div>
+      <div className="flex-1 py-2 pl-3">{children}</div>
     </div>
   );
 }
