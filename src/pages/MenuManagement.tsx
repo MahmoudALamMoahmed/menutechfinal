@@ -718,6 +718,50 @@ export default function MenuManagement() {
     }
   };
 
+  // Handle drag end for extras
+  const handleExtraDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+    
+    const oldIndex = extras.findIndex((e) => e.id === active.id);
+    const newIndex = extras.findIndex((e) => e.id === over.id);
+    
+    const newExtras = arrayMove(extras, oldIndex, newIndex);
+    setExtras(newExtras);
+    
+    // Update display_order in database
+    try {
+      const updates = newExtras.map((extra, index) => ({
+        id: extra.id,
+        name: extra.name,
+        price: extra.price,
+        restaurant_id: extra.restaurant_id,
+        is_available: extra.is_available,
+        display_order: index,
+      }));
+      
+      const { error } = await supabase
+        .from('extras')
+        .upsert(updates);
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'تم الترتيب',
+        description: 'تم تحديث ترتيب الإضافات',
+      });
+    } catch (error) {
+      console.error('Error updating extras order:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تحديث الترتيب',
+        variant: 'destructive',
+      });
+      await fetchData();
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir="rtl">
@@ -1288,48 +1332,60 @@ export default function MenuManagement() {
               </div>
             </div>
             
-            {/* Existing Extras */}
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {extras.map((extra) => (
-                <div key={extra.id} className="flex items-center justify-between p-3 bg-white border rounded-lg">
-                  <div>
-                    <p className="font-medium">{extra.name}</p>
-                    <p className="text-sm text-green-600">+{extra.price} ج.م</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingExtra(extra);
-                        setExtraForm({
-                          name: extra.name,
-                          price: extra.price.toString(),
-                          display_order: extra.display_order
-                        });
-                      }}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setDeleteDialog({
-                        open: true,
-                        type: 'extra',
-                        id: extra.id,
-                        name: extra.name
-                      })}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleExtraDragEnd}
+            >
+              <SortableContext
+                items={extras.map(e => e.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {extras.map((extra) => (
+                    <SortableItem key={extra.id} id={extra.id}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{extra.name}</p>
+                          <p className="text-sm text-green-600">+{extra.price} ج.م</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingExtra(extra);
+                              setExtraForm({
+                                name: extra.name,
+                                price: extra.price.toString(),
+                                display_order: extra.display_order
+                              });
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setDeleteDialog({
+                              open: true,
+                              type: 'extra',
+                              id: extra.id,
+                              name: extra.name
+                            })}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </SortableItem>
+                  ))}
+                  {extras.length === 0 && (
+                    <p className="text-gray-500 text-center py-4">لا توجد إضافات بعد</p>
+                  )}
                 </div>
-              ))}
-              {extras.length === 0 && (
-                <p className="text-gray-500 text-center py-4">لا توجد إضافات بعد</p>
-              )}
-            </div>
+              </SortableContext>
+            </DndContext>
           </div>
         </DialogContent>
       </Dialog>
