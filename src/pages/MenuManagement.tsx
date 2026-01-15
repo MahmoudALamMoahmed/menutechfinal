@@ -12,7 +12,23 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import ImageUploader from '@/components/ImageUploader';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
+import { SortableItem } from '@/components/SortableItem';
 import { getMenuItemPublicId, deleteFromCloudinary } from '@/lib/cloudinary';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { 
   ArrowLeft,
   Plus,
@@ -134,6 +150,14 @@ export default function MenuManagement() {
     name: string;
   }>({ open: false, type: 'category', id: '', name: '' });
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -591,6 +615,109 @@ export default function MenuManagement() {
     }
   };
 
+  // Handle drag end for categories
+  const handleCategoryDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+    
+    const oldIndex = categories.findIndex((c) => c.id === active.id);
+    const newIndex = categories.findIndex((c) => c.id === over.id);
+    
+    const newCategories = arrayMove(categories, oldIndex, newIndex);
+    setCategories(newCategories);
+    
+    // Update display_order in database
+    try {
+      const updates = newCategories.map((cat, index) => ({
+        id: cat.id,
+        name: cat.name,
+        display_order: index,
+        restaurant_id: cat.restaurant_id,
+      }));
+      
+      const { error } = await supabase
+        .from('categories')
+        .upsert(updates);
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'تم الترتيب',
+        description: 'تم تحديث ترتيب الفئات',
+      });
+    } catch (error) {
+      console.error('Error updating category order:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تحديث الترتيب',
+        variant: 'destructive',
+      });
+      await fetchData();
+    }
+  };
+
+  // Handle drag end for menu items
+  const handleItemDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+    
+    const filteredItems = menuItems.filter(item => 
+      item.name.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
+      item.description?.toLowerCase().includes(itemSearchQuery.toLowerCase())
+    );
+    
+    const oldIndex = filteredItems.findIndex((item) => item.id === active.id);
+    const newIndex = filteredItems.findIndex((item) => item.id === over.id);
+    
+    const newFilteredItems = arrayMove(filteredItems, oldIndex, newIndex);
+    
+    // Rebuild full menuItems array with new order
+    const otherItems = menuItems.filter(item => 
+      !item.name.toLowerCase().includes(itemSearchQuery.toLowerCase()) &&
+      !item.description?.toLowerCase().includes(itemSearchQuery.toLowerCase())
+    );
+    
+    const newMenuItems = [...newFilteredItems, ...otherItems];
+    setMenuItems(newMenuItems);
+    
+    // Update display_order in database
+    try {
+      const updates = newFilteredItems.map((item, index) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        category_id: item.category_id,
+        restaurant_id: item.restaurant_id,
+        image_url: item.image_url,
+        image_public_id: item.image_public_id,
+        is_available: item.is_available,
+        display_order: index,
+      }));
+      
+      const { error } = await supabase
+        .from('menu_items')
+        .upsert(updates);
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'تم الترتيب',
+        description: 'تم تحديث ترتيب الأصناف',
+      });
+    } catch (error) {
+      console.error('Error updating item order:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تحديث الترتيب',
+        variant: 'destructive',
+      });
+      await fetchData();
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir="rtl">
@@ -695,44 +822,57 @@ export default function MenuManagement() {
                 </div>
               )}
               
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <div key={category.id} className="flex items-center justify-between p-3 bg-white border rounded-lg">
-                    <div>
-                      <p className="font-medium">{category.name}</p>
-                      <p className="text-sm text-gray-500">ترتيب: {category.display_order}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingCategory(category);
-                          setCategoryForm({
-                            name: category.name,
-                            display_order: category.display_order
-                          });
-                          setShowCategoryForm(true);
-                        }}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setDeleteDialog({
-                          open: true,
-                          type: 'category',
-                          id: category.id,
-                          name: category.name
-                        })}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleCategoryDragEnd}
+              >
+                <SortableContext
+                  items={categories.map(c => c.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {categories.map((category) => (
+                      <SortableItem key={category.id} id={category.id}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{category.name}</p>
+                            <p className="text-sm text-gray-500">ترتيب: {category.display_order}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingCategory(category);
+                                setCategoryForm({
+                                  name: category.name,
+                                  display_order: category.display_order
+                                });
+                                setShowCategoryForm(true);
+                              }}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setDeleteDialog({
+                                open: true,
+                                type: 'category',
+                                id: category.id,
+                                name: category.name
+                              })}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </SortableItem>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </SortableContext>
+              </DndContext>
             </CardContent>
           </Card>
 
@@ -872,68 +1012,86 @@ export default function MenuManagement() {
                 </div>
               )}
               
-              <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                {menuItems
-                  .filter(item => 
-                    item.name.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
-                    item.description?.toLowerCase().includes(itemSearchQuery.toLowerCase())
-                  )
-                  .map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-3 bg-white border rounded-lg">
-                    <div className="flex-1">
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-gray-500">{item.description}</p>
-                      <p className="text-sm font-bold text-green-600">{item.price} ج.م</p>
-                      <p className="text-xs text-gray-400">
-                        {item.category_id ? categories.find(c => c.id === item.category_id)?.name : 'بدون فئة'}
-                      </p>
-                    </div>
-                     <div className="flex gap-2">
-                       <Button
-                         size="sm"
-                         variant="outline"
-                         onClick={() => openSizesDialog(item.id)}
-                         title="إدارة الأحجام"
-                       >
-                         <Ruler className="w-4 h-4" />
-                       </Button>
-                       <Button
-                         size="sm"
-                         variant="outline"
-                        onClick={() => {
-                          setEditingItem(item);
-                          setTempItemId(null);
-                          setItemForm({
-                            name: item.name,
-                            description: item.description || '',
-                            price: item.price.toString(),
-                            category_id: item.category_id || '',
-                            image_url: item.image_url || '',
-                            image_public_id: item.image_public_id || '',
-                            is_available: item.is_available,
-                            display_order: item.display_order
-                          });
-                          setShowItemForm(true);
-                        }}
-                       >
-                         <Edit className="w-4 h-4" />
-                       </Button>
-                       <Button
-                         size="sm"
-                         variant="outline"
-                         onClick={() => setDeleteDialog({
-                           open: true,
-                           type: 'item',
-                           id: item.id,
-                           name: item.name
-                         })}
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </Button>
-                     </div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleItemDragEnd}
+              >
+                <SortableContext
+                  items={menuItems
+                    .filter(item => 
+                      item.name.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
+                      item.description?.toLowerCase().includes(itemSearchQuery.toLowerCase())
+                    )
+                    .map(item => item.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                    {menuItems
+                      .filter(item => 
+                        item.name.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
+                        item.description?.toLowerCase().includes(itemSearchQuery.toLowerCase())
+                      )
+                      .map((item) => (
+                        <SortableItem key={item.id} id={item.id}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="font-medium">{item.name}</p>
+                              <p className="text-sm text-gray-500">{item.description}</p>
+                              <p className="text-sm font-bold text-green-600">{item.price} ج.م</p>
+                              <p className="text-xs text-gray-400">
+                                {item.category_id ? categories.find(c => c.id === item.category_id)?.name : 'بدون فئة'}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openSizesDialog(item.id)}
+                                title="إدارة الأحجام"
+                              >
+                                <Ruler className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingItem(item);
+                                  setTempItemId(null);
+                                  setItemForm({
+                                    name: item.name,
+                                    description: item.description || '',
+                                    price: item.price.toString(),
+                                    category_id: item.category_id || '',
+                                    image_url: item.image_url || '',
+                                    image_public_id: item.image_public_id || '',
+                                    is_available: item.is_available,
+                                    display_order: item.display_order
+                                  });
+                                  setShowItemForm(true);
+                                }}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setDeleteDialog({
+                                  open: true,
+                                  type: 'item',
+                                  id: item.id,
+                                  name: item.name
+                                })}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </SortableItem>
+                      ))}
                   </div>
-                ))}
-              </div>
+                </SortableContext>
+              </DndContext>
             </CardContent>
           </Card>
 
