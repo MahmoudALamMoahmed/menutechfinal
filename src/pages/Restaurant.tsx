@@ -810,19 +810,64 @@ ${orderText}
                               {paymentMethod === 'vodafone' && (
                                 <>
                                   <span className="w-4 h-4 bg-red-500 rounded-full"></span>
-                                  {branches.find(b => b.id === selectedBranch)?.vodafone_cash}
+                                  <span>{branches.find(b => b.id === selectedBranch)?.vodafone_cash}</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-2 text-amber-700 hover:text-amber-900 hover:bg-amber-100"
+                                    onClick={() => {
+                                      const number = branches.find(b => b.id === selectedBranch)?.vodafone_cash;
+                                      if (number) {
+                                        navigator.clipboard.writeText(number);
+                                        toast({ title: 'تم النسخ', description: 'تم نسخ الرقم بنجاح' });
+                                      }
+                                    }}
+                                  >
+                                    📋
+                                  </Button>
                                 </>
                               )}
                               {paymentMethod === 'etisalat' && (
                                 <>
                                   <span className="w-4 h-4 bg-green-500 rounded-full"></span>
-                                  {branches.find(b => b.id === selectedBranch)?.etisalat_cash}
+                                  <span>{branches.find(b => b.id === selectedBranch)?.etisalat_cash}</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-2 text-amber-700 hover:text-amber-900 hover:bg-amber-100"
+                                    onClick={() => {
+                                      const number = branches.find(b => b.id === selectedBranch)?.etisalat_cash;
+                                      if (number) {
+                                        navigator.clipboard.writeText(number);
+                                        toast({ title: 'تم النسخ', description: 'تم نسخ الرقم بنجاح' });
+                                      }
+                                    }}
+                                  >
+                                    📋
+                                  </Button>
                                 </>
                               )}
                               {paymentMethod === 'orange' && (
                                 <>
                                   <span className="w-4 h-4 bg-orange-500 rounded-full"></span>
-                                  {branches.find(b => b.id === selectedBranch)?.orange_cash}
+                                  <span>{branches.find(b => b.id === selectedBranch)?.orange_cash}</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-2 text-amber-700 hover:text-amber-900 hover:bg-amber-100"
+                                    onClick={() => {
+                                      const number = branches.find(b => b.id === selectedBranch)?.orange_cash;
+                                      if (number) {
+                                        navigator.clipboard.writeText(number);
+                                        toast({ title: 'تم النسخ', description: 'تم نسخ الرقم بنجاح' });
+                                      }
+                                    }}
+                                  >
+                                    📋
+                                  </Button>
                                 </>
                               )}
                             </div>
