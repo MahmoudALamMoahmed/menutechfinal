@@ -26,6 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DeliveryArea {
   id: string;
@@ -436,12 +437,13 @@ export default function BranchesManagement() {
                   إضافة فرع
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md" dir="rtl">
-                <DialogHeader>
+              <DialogContent className="max-w-md max-h-[90vh] flex flex-col" dir="rtl">
+                <DialogHeader className="flex-shrink-0">
                   <DialogTitle>
                     {editingBranch ? 'تعديل الفرع' : 'إضافة فرع جديد'}
                   </DialogTitle>
                 </DialogHeader>
+                <ScrollArea className="flex-1 overflow-auto pr-4">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">اسم الفرع *</Label>
@@ -568,6 +570,7 @@ export default function BranchesManagement() {
                     )}
                   </Button>
                 </div>
+                </ScrollArea>
               </DialogContent>
             </Dialog>
           </div>
