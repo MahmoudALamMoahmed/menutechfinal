@@ -715,78 +715,6 @@ ${orderText}
                       </div>
                     </div>
 
-                    {/* اختيار طريقة الدفع */}
-                    <div className="space-y-3">
-                      <Label className="font-medium">طريقة الدفع</Label>
-                      <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                        <SelectTrigger className="bg-background">
-                          <SelectValue placeholder="اختر طريقة الدفع" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background z-50">
-                          <SelectItem value="cash">
-                            <span className="flex items-center gap-2">💵 الدفع عند الاستلام</span>
-                          </SelectItem>
-                          {selectedBranch && branches.find(b => b.id === selectedBranch)?.vodafone_cash && (
-                            <SelectItem value="vodafone">
-                              <span className="flex items-center gap-2">
-                                <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-                                فودافون كاش
-                              </span>
-                            </SelectItem>
-                          )}
-                          {selectedBranch && branches.find(b => b.id === selectedBranch)?.etisalat_cash && (
-                            <SelectItem value="etisalat">
-                              <span className="flex items-center gap-2">
-                                <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                                اتصالات كاش
-                              </span>
-                            </SelectItem>
-                          )}
-                          {selectedBranch && branches.find(b => b.id === selectedBranch)?.orange_cash && (
-                            <SelectItem value="orange">
-                              <span className="flex items-center gap-2">
-                                <span className="w-3 h-3 bg-orange-500 rounded-full"></span>
-                                اورانج كاش
-                              </span>
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      
-                      {/* عرض رقم الدفع الإلكتروني */}
-                      {paymentMethod !== 'cash' && selectedBranch && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
-                          <div className="flex items-center justify-center gap-2 text-lg font-bold text-amber-800">
-                            {paymentMethod === 'vodafone' && (
-                              <>
-                                <span className="w-4 h-4 bg-red-500 rounded-full"></span>
-                                {branches.find(b => b.id === selectedBranch)?.vodafone_cash}
-                              </>
-                            )}
-                            {paymentMethod === 'etisalat' && (
-                              <>
-                                <span className="w-4 h-4 bg-green-500 rounded-full"></span>
-                                {branches.find(b => b.id === selectedBranch)?.etisalat_cash}
-                              </>
-                            )}
-                            {paymentMethod === 'orange' && (
-                              <>
-                                <span className="w-4 h-4 bg-orange-500 rounded-full"></span>
-                                {branches.find(b => b.id === selectedBranch)?.orange_cash}
-                              </>
-                            )}
-                          </div>
-                          <div className="text-center text-sm text-amber-700">
-                            <p className="font-medium">⚠️ تنبيه مهم:</p>
-                            <p>ارسل المبلغ ({getFinalTotal()} جنيه) للرقم الظاهر أعلاه</p>
-                            <p>وخد اسكرين شوت لإثبات الدفع</p>
-                            <p className="mt-2 font-medium">واضغط على "إرسال الطلب واتساب"</p>
-                            <p>وبعد إرسال طلبك ارسل إثبات الدفع</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
                     <Separator />
 
                     <div className="space-y-3">
@@ -836,6 +764,78 @@ ${orderText}
                           </Select>
                         </div>
                       )}
+
+                      {/* اختيار طريقة الدفع - يظهر بعد اختيار الفرع */}
+                      <div className="space-y-3">
+                        <Label className="font-medium">طريقة الدفع</Label>
+                        <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                          <SelectTrigger className="bg-background">
+                            <SelectValue placeholder="اختر طريقة الدفع" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50">
+                            <SelectItem value="cash">
+                              <span className="flex items-center gap-2">💵 الدفع عند الاستلام</span>
+                            </SelectItem>
+                            {selectedBranch && branches.find(b => b.id === selectedBranch)?.vodafone_cash && (
+                              <SelectItem value="vodafone">
+                                <span className="flex items-center gap-2">
+                                  <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                                  فودافون كاش
+                                </span>
+                              </SelectItem>
+                            )}
+                            {selectedBranch && branches.find(b => b.id === selectedBranch)?.etisalat_cash && (
+                              <SelectItem value="etisalat">
+                                <span className="flex items-center gap-2">
+                                  <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                                  اتصالات كاش
+                                </span>
+                              </SelectItem>
+                            )}
+                            {selectedBranch && branches.find(b => b.id === selectedBranch)?.orange_cash && (
+                              <SelectItem value="orange">
+                                <span className="flex items-center gap-2">
+                                  <span className="w-3 h-3 bg-orange-500 rounded-full"></span>
+                                  اورانج كاش
+                                </span>
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        
+                        {/* عرض رقم الدفع الإلكتروني */}
+                        {paymentMethod !== 'cash' && selectedBranch && (
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
+                            <div className="flex items-center justify-center gap-2 text-lg font-bold text-amber-800">
+                              {paymentMethod === 'vodafone' && (
+                                <>
+                                  <span className="w-4 h-4 bg-red-500 rounded-full"></span>
+                                  {branches.find(b => b.id === selectedBranch)?.vodafone_cash}
+                                </>
+                              )}
+                              {paymentMethod === 'etisalat' && (
+                                <>
+                                  <span className="w-4 h-4 bg-green-500 rounded-full"></span>
+                                  {branches.find(b => b.id === selectedBranch)?.etisalat_cash}
+                                </>
+                              )}
+                              {paymentMethod === 'orange' && (
+                                <>
+                                  <span className="w-4 h-4 bg-orange-500 rounded-full"></span>
+                                  {branches.find(b => b.id === selectedBranch)?.orange_cash}
+                                </>
+                              )}
+                            </div>
+                            <div className="text-center text-sm text-amber-700">
+                              <p className="font-medium">⚠️ تنبيه مهم:</p>
+                              <p>ارسل المبلغ ({getFinalTotal()} جنيه) للرقم الظاهر أعلاه</p>
+                              <p>وخد اسكرين شوت لإثبات الدفع</p>
+                              <p className="mt-2 font-medium">واضغط على "إرسال الطلب واتساب"</p>
+                              <p>وبعد إرسال طلبك ارسل إثبات الدفع</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
 
                       <div>
                         <Label htmlFor="customerName">اسم العميل</Label>
