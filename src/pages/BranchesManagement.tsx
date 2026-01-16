@@ -443,8 +443,8 @@ export default function BranchesManagement() {
                     {editingBranch ? 'تعديل الفرع' : 'إضافة فرع جديد'}
                   </DialogTitle>
                 </DialogHeader>
-                <ScrollArea className="flex-1 overflow-auto pr-4">
-                <div className="space-y-4">
+                <ScrollArea className="flex-1 overflow-auto" dir="rtl">
+                <div className="space-y-4 px-1">
                   <div className="space-y-2">
                     <Label htmlFor="name">اسم الفرع *</Label>
                     <Input
