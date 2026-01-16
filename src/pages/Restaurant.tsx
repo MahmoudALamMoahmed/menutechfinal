@@ -17,7 +17,8 @@ import { Home, ShoppingCart, User, Plus, Minus, Phone, MapPin, Clock, Share2, Se
   Instagram,
   ChevronRight,
   ChevronLeft,
-  Building2 } from 'lucide-react';
+  Building2,
+  Copy } from 'lucide-react';
 import RestaurantFooter from '@/components/RestaurantFooter';
 import ProductDetailsDialog from '@/components/ProductDetailsDialog';
 import BranchesDialog from '@/components/BranchesDialog';
@@ -824,7 +825,7 @@ ${orderText}
                                       }
                                     }}
                                   >
-                                    📋
+                                    <Copy className="w-4 h-4" />
                                   </Button>
                                 </>
                               )}
@@ -845,7 +846,7 @@ ${orderText}
                                       }
                                     }}
                                   >
-                                    📋
+                                    <Copy className="w-4 h-4" />
                                   </Button>
                                 </>
                               )}
@@ -866,7 +867,7 @@ ${orderText}
                                       }
                                     }}
                                   >
-                                    📋
+                                    <Copy className="w-4 h-4" />
                                   </Button>
                                 </>
                               )}
