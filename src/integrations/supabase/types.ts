@@ -20,12 +20,15 @@ export type Database = {
           created_at: string
           delivery_phone: string | null
           display_order: number | null
+          etisalat_cash: string | null
           id: string
           is_active: boolean | null
           name: string
+          orange_cash: string | null
           phone: string | null
           restaurant_id: string
           updated_at: string
+          vodafone_cash: string | null
           whatsapp_phone: string | null
           working_hours: string | null
         }
@@ -34,12 +37,15 @@ export type Database = {
           created_at?: string
           delivery_phone?: string | null
           display_order?: number | null
+          etisalat_cash?: string | null
           id?: string
           is_active?: boolean | null
           name: string
+          orange_cash?: string | null
           phone?: string | null
           restaurant_id: string
           updated_at?: string
+          vodafone_cash?: string | null
           whatsapp_phone?: string | null
           working_hours?: string | null
         }
@@ -48,12 +54,15 @@ export type Database = {
           created_at?: string
           delivery_phone?: string | null
           display_order?: number | null
+          etisalat_cash?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
+          orange_cash?: string | null
           phone?: string | null
           restaurant_id?: string
           updated_at?: string
+          vodafone_cash?: string | null
           whatsapp_phone?: string | null
           working_hours?: string | null
         }
