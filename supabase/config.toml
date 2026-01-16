@@ -1,4 +1,1 @@
 project_id = "avfzfxkxcoinzqryjlvz"
-
-[functions.cloudinary-delete]
-verify_jwt = false
