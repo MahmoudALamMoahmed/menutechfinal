@@ -46,6 +46,9 @@ interface Branch {
   working_hours: string;
   display_order: number;
   is_active: boolean;
+  vodafone_cash?: string | null;
+  etisalat_cash?: string | null;
+  orange_cash?: string | null;
 }
 
 interface Restaurant {
@@ -75,7 +78,10 @@ export default function BranchesManagement() {
     whatsapp_phone: '',
     delivery_phone: '',
     working_hours: '',
-    is_active: true
+    is_active: true,
+    vodafone_cash: '',
+    etisalat_cash: '',
+    orange_cash: ''
   });
   
   // إدارة المناطق
@@ -153,7 +159,10 @@ export default function BranchesManagement() {
       whatsapp_phone: '',
       delivery_phone: '',
       working_hours: '',
-      is_active: true
+      is_active: true,
+      vodafone_cash: '',
+      etisalat_cash: '',
+      orange_cash: ''
     });
     setEditingBranch(null);
   };
@@ -167,7 +176,10 @@ export default function BranchesManagement() {
       whatsapp_phone: branch.whatsapp_phone || '',
       delivery_phone: branch.delivery_phone || '',
       working_hours: branch.working_hours || '',
-      is_active: branch.is_active
+      is_active: branch.is_active,
+      vodafone_cash: branch.vodafone_cash || '',
+      etisalat_cash: branch.etisalat_cash || '',
+      orange_cash: branch.orange_cash || ''
     });
     setShowDialog(true);
   };
@@ -486,6 +498,49 @@ export default function BranchesManagement() {
                       onChange={(e) => setFormData(prev => ({ ...prev, working_hours: e.target.value }))}
                       placeholder="يومياً من 9 صباحاً إلى 11 مساءً"
                     />
+                  </div>
+                  
+                  {/* أرقام الدفع الإلكتروني */}
+                  <div className="border-t pt-4 mt-4">
+                    <h4 className="font-medium text-sm mb-3 text-gray-700">أرقام الدفع الإلكتروني (اختياري)</h4>
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="vodafone_cash" className="text-sm flex items-center gap-2">
+                          <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                          فودافون كاش
+                        </Label>
+                        <Input
+                          id="vodafone_cash"
+                          value={formData.vodafone_cash}
+                          onChange={(e) => setFormData(prev => ({ ...prev, vodafone_cash: e.target.value }))}
+                          placeholder="01012345678"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="etisalat_cash" className="text-sm flex items-center gap-2">
+                          <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                          اتصالات كاش
+                        </Label>
+                        <Input
+                          id="etisalat_cash"
+                          value={formData.etisalat_cash}
+                          onChange={(e) => setFormData(prev => ({ ...prev, etisalat_cash: e.target.value }))}
+                          placeholder="01112345678"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="orange_cash" className="text-sm flex items-center gap-2">
+                          <span className="w-3 h-3 bg-orange-500 rounded-full"></span>
+                          اورانج كاش
+                        </Label>
+                        <Input
+                          id="orange_cash"
+                          value={formData.orange_cash}
+                          onChange={(e) => setFormData(prev => ({ ...prev, orange_cash: e.target.value }))}
+                          placeholder="01212345678"
+                        />
+                      </div>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <Label htmlFor="is_active">فعال</Label>

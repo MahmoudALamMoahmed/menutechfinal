@@ -76,6 +76,9 @@ interface Branch {
   delivery_phone: string | null;
   working_hours: string | null;
   is_active: boolean;
+  vodafone_cash?: string | null;
+  etisalat_cash?: string | null;
+  orange_cash?: string | null;
 }
 interface DeliveryArea {
   id: string;
@@ -116,6 +119,7 @@ export default function Restaurant() {
   const [deliveryAreas, setDeliveryAreas] = useState<DeliveryArea[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [selectedArea, setSelectedArea] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const categoriesRef = useRef<HTMLDivElement | null>(null);
 
   const isOwner = user && restaurant && user.id === restaurant.owner_id;
@@ -343,6 +347,18 @@ export default function Restaurant() {
       const areaText = areaName ? `\n📍 المنطقة: ${areaName}` : '';
       const deliveryText = deliveryPrice > 0 ? `\n🚗 سعر التوصيل: ${deliveryPrice} جنيه` : '';
       
+      // تحديد نص طريقة الدفع
+      let paymentMethodText = 'الدفع عند الاستلام';
+      if (paymentMethod === 'vodafone') {
+        paymentMethodText = 'فودافون كاش';
+      } else if (paymentMethod === 'etisalat') {
+        paymentMethodText = 'اتصالات كاش';
+      } else if (paymentMethod === 'orange') {
+        paymentMethodText = 'اورانج كاش';
+      }
+      
+      const paymentNote = paymentMethod !== 'cash' ? '\n\n⏳ ملاحظة: العميل سيرسل إثبات الدفع بعد هذه الرسالة' : '';
+      
       const message = `🛒 طلب جديد من ${restaurant.name}${branchText}${areaText}
 
 👤 بيانات العميل:
@@ -355,7 +371,7 @@ ${orderText}
 
 💰 إجمالي الطلب: ${totalPrice} جنيه${deliveryText}
 💵 الإجمالي الكلي: ${finalTotal} جنيه
-💳 طريقة الدفع: الدفع عند الاستلام
+💳 طريقة الدفع: ${paymentMethodText}${paymentNote}
 
 الرجاء تأكيد استلام الطلب.
 شكراً لكم.`;
@@ -372,6 +388,7 @@ ${orderText}
       setCustomerPhone('');
       setSelectedBranch('');
       setSelectedArea('');
+      setPaymentMethod('cash');
       toast({
         title: 'تم إرسال الطلب',
         description: 'تم إرسال طلبك عبر واتساب بنجاح'
@@ -698,8 +715,76 @@ ${orderText}
                       </div>
                     </div>
 
-                    <div className="text-sm text-center text-gray-600">
-                      طريقة الدفع: الدفع عند الاستلام
+                    {/* اختيار طريقة الدفع */}
+                    <div className="space-y-3">
+                      <Label className="font-medium">طريقة الدفع</Label>
+                      <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                        <SelectTrigger className="bg-background">
+                          <SelectValue placeholder="اختر طريقة الدفع" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          <SelectItem value="cash">
+                            <span className="flex items-center gap-2">💵 الدفع عند الاستلام</span>
+                          </SelectItem>
+                          {selectedBranch && branches.find(b => b.id === selectedBranch)?.vodafone_cash && (
+                            <SelectItem value="vodafone">
+                              <span className="flex items-center gap-2">
+                                <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                                فودافون كاش
+                              </span>
+                            </SelectItem>
+                          )}
+                          {selectedBranch && branches.find(b => b.id === selectedBranch)?.etisalat_cash && (
+                            <SelectItem value="etisalat">
+                              <span className="flex items-center gap-2">
+                                <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                                اتصالات كاش
+                              </span>
+                            </SelectItem>
+                          )}
+                          {selectedBranch && branches.find(b => b.id === selectedBranch)?.orange_cash && (
+                            <SelectItem value="orange">
+                              <span className="flex items-center gap-2">
+                                <span className="w-3 h-3 bg-orange-500 rounded-full"></span>
+                                اورانج كاش
+                              </span>
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      
+                      {/* عرض رقم الدفع الإلكتروني */}
+                      {paymentMethod !== 'cash' && selectedBranch && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
+                          <div className="flex items-center justify-center gap-2 text-lg font-bold text-amber-800">
+                            {paymentMethod === 'vodafone' && (
+                              <>
+                                <span className="w-4 h-4 bg-red-500 rounded-full"></span>
+                                {branches.find(b => b.id === selectedBranch)?.vodafone_cash}
+                              </>
+                            )}
+                            {paymentMethod === 'etisalat' && (
+                              <>
+                                <span className="w-4 h-4 bg-green-500 rounded-full"></span>
+                                {branches.find(b => b.id === selectedBranch)?.etisalat_cash}
+                              </>
+                            )}
+                            {paymentMethod === 'orange' && (
+                              <>
+                                <span className="w-4 h-4 bg-orange-500 rounded-full"></span>
+                                {branches.find(b => b.id === selectedBranch)?.orange_cash}
+                              </>
+                            )}
+                          </div>
+                          <div className="text-center text-sm text-amber-700">
+                            <p className="font-medium">⚠️ تنبيه مهم:</p>
+                            <p>ارسل المبلغ ({getFinalTotal()} جنيه) للرقم الظاهر أعلاه</p>
+                            <p>وخد اسكرين شوت لإثبات الدفع</p>
+                            <p className="mt-2 font-medium">واضغط على "إرسال الطلب واتساب"</p>
+                            <p>وبعد إرسال طلبك ارسل إثبات الدفع</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <Separator />
@@ -716,6 +801,7 @@ ${orderText}
                             onValueChange={(value) => {
                               setSelectedBranch(value);
                               setSelectedArea(''); // إعادة تعيين المنطقة عند تغيير الفرع
+                              setPaymentMethod('cash'); // إعادة تعيين طريقة الدفع عند تغيير الفرع
                             }}
                           >
                             <SelectTrigger className="bg-background">
