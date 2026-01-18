@@ -447,7 +447,7 @@ ${orderText}
 
       {/* Cover Image */}
       <div className="relative aspect-[16/9] max-h-80 bg-gradient-to-r from-orange-400 to-red-500">
-      {restaurant.cover_image_url && <img src={getCoverImageUrl(restaurant.cover_image_url)} alt={restaurant.name} className="w-full h-full object-contain" loading="eager" />}
+      {restaurant.cover_image_url && <img src={getCoverImageUrl(restaurant.cover_image_url)} alt={restaurant.name} className="w-full h-full object-cover object-top" loading="eager" />}
       </div>
 
       {/* Restaurant Info */}
