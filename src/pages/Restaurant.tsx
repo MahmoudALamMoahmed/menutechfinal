@@ -446,12 +446,12 @@ ${orderText}
       </div>
 
       {/* Cover Image */}
-      <div className="relative h-48 bg-gradient-to-r from-orange-400 to-red-500">
-        {restaurant.cover_image_url && <img src={getCoverImageUrl(restaurant.cover_image_url)} alt={restaurant.name} className="w-full h-full object-cover" loading="eager" />}
+      <div className="relative h-40 sm:h-56 md:h-64 lg:h-80 bg-gradient-to-r from-orange-400 to-red-500">
+        {restaurant.cover_image_url && <img src={getCoverImageUrl(restaurant.cover_image_url)} alt={restaurant.name} className="w-full h-full object-cover object-center" loading="eager" />}
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
         <div className="absolute bottom-4 right-4 text-white">
-          <h2 className="text-2xl font-bold">{restaurant.name}</h2>
-          {restaurant.description && <p className="text-sm opacity-90">{restaurant.description}</p>}
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">{restaurant.name}</h2>
+          {restaurant.description && <p className="text-xs sm:text-sm md:text-base opacity-90">{restaurant.description}</p>}
         </div>
       </div>
 
