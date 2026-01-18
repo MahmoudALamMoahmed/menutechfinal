@@ -42,19 +42,19 @@ export default function ImageUploader({
 
   const aspectClasses = {
     square: 'aspect-square',
-    cover: 'aspect-[16/9]',
+    cover: 'aspect-[3/1]',
     logo: 'aspect-square max-w-[150px]',
   };
 
   const aspectRatioValues = {
     square: 1,
-    cover: 16 / 9,
+    cover: 3 / 1,
     logo: 1,
   };
 
   const dimensionHints = {
     square: { width: 800, height: 800, text: '800×800 بكسل' },
-    cover: { width: 1200, height: 400, text: '1200×400 بكسل (نسبة 3:1)' },
+    cover: { width: 1500, height: 500, text: '1500×500 بكسل (نسبة 3:1)' },
     logo: { width: 200, height: 200, text: '200×200 بكسل' },
   };
 
