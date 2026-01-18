@@ -446,8 +446,8 @@ ${orderText}
       </div>
 
       {/* Cover Image */}
-      <div className="w-full h-64 md:h-80 lg:h-96 overflow-hidden">
-      {restaurant.cover_image_url && <img src={getCoverImageUrl(restaurant.cover_image_url)} alt={restaurant.name} className="w-full h-full object-cover object-[center_30%]" loading="eager" />}
+      <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
+       {restaurant.cover_image_url && <img src={getCoverImageUrl(restaurant.cover_image_url)} alt={restaurant.name} className="w-full h-full object-contain" loading="eager" />}
       </div>
 
       {/* Restaurant Info */}
