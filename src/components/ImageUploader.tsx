@@ -16,7 +16,6 @@ interface ImageUploaderProps {
   label?: string;
   className?: string;
   enableCrop?: boolean;
-  showDimensionHint?: boolean;
 }
 
 export default function ImageUploader({
@@ -29,7 +28,6 @@ export default function ImageUploader({
   label = 'رفع صورة',
   className,
   enableCrop = true,
-  showDimensionHint = false,
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -42,20 +40,14 @@ export default function ImageUploader({
 
   const aspectClasses = {
     square: 'aspect-square',
-    cover: 'aspect-[3/1]',
+    cover: 'aspect-[16/9]',
     logo: 'aspect-square max-w-[150px]',
   };
 
   const aspectRatioValues = {
     square: 1,
-    cover: 3 / 1,
+    cover: 16 / 9,
     logo: 1,
-  };
-
-  const dimensionHints = {
-    square: { width: 800, height: 800, text: '800×800 بكسل' },
-    cover: { width: 1500, height: 500, text: '1500×500 بكسل (نسبة 3:1)' },
-    logo: { width: 200, height: 200, text: '200×200 بكسل' },
   };
 
   const handleFileSelect = useCallback((file: File) => {
@@ -181,12 +173,7 @@ export default function ImageUploader({
   return (
     <div className={cn('space-y-2', className)}>
       {label && <p className="text-sm font-medium text-gray-700">{label}</p>}
-      {showDimensionHint && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
-          <ImageIcon className="w-4 h-4 flex-shrink-0" />
-          <span>الأبعاد المثالية: <strong className="text-foreground">{dimensionHints[aspectRatio].text}</strong></span>
-        </div>
-      )}
+      
       <div
         className={cn(
           'relative border-2 border-dashed rounded-lg overflow-hidden transition-colors',

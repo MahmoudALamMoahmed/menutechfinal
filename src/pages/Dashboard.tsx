@@ -372,7 +372,6 @@ export default function Dashboard() {
                   currentPublicId={formData.cover_image_public_id}
                   publicId={getCoverPublicId(restaurant.username)}
                   aspectRatio="cover"
-                  showDimensionHint={true}
                   onUploadComplete={(url, publicId) => {
                     setFormData(prev => ({
                       ...prev,
