@@ -447,7 +447,7 @@ ${orderText}
 
       {/* Cover Image */}
       <div className="container mx-auto px-4 mt-4">
-        <div className="relative aspect-[16/6] sm:aspect-[16/5] md:aspect-[16/4] lg:aspect-[21/6] bg-muted overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl">
+        <div className="relative aspect-[3/1] bg-muted overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl">
           {restaurant.cover_image_url && (
             <img 
               src={getCoverImageUrl(restaurant.cover_image_url)} 
