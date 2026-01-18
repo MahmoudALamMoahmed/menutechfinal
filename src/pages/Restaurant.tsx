@@ -446,15 +446,17 @@ ${orderText}
       </div>
 
       {/* Cover Image */}
-      <div className="relative aspect-[16/6] sm:aspect-[16/5] md:aspect-[16/4] lg:aspect-[21/6] bg-muted overflow-hidden">
-        {restaurant.cover_image_url && (
-          <img 
-            src={getCoverImageUrl(restaurant.cover_image_url)} 
-            alt={restaurant.name} 
-            className="w-full h-full object-cover" 
-            loading="eager" 
-          />
-        )}
+      <div className="container mx-auto px-4 mt-4">
+        <div className="relative aspect-[16/6] sm:aspect-[16/5] md:aspect-[16/4] lg:aspect-[21/6] bg-muted overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl">
+          {restaurant.cover_image_url && (
+            <img 
+              src={getCoverImageUrl(restaurant.cover_image_url)} 
+              alt={restaurant.name} 
+              className="w-full h-full object-cover" 
+              loading="eager" 
+            />
+          )}
+        </div>
       </div>
 
       {/* Restaurant Info */}
