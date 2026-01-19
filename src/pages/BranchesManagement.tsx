@@ -171,6 +171,70 @@ interface DeliveryArea {
   display_order: number;
 }
 
+// Sortable Delivery Area Item Component
+interface SortableAreaItemProps {
+  area: DeliveryArea;
+  onEdit: (area: DeliveryArea) => void;
+  onDelete: (areaId: string) => void;
+}
+
+function SortableAreaItem({ area, onEdit, onDelete }: SortableAreaItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: area.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
+    >
+      <div className="flex items-center gap-2">
+        <button
+          className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+        <div>
+          <span className="font-medium">{area.name}</span>
+          <span className="text-primary mr-2">
+            ({area.delivery_price} جنيه)
+          </span>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => onEdit(area)}
+        >
+          <Edit2 className="w-3 h-3" />
+        </Button>
+        <Button 
+          variant="destructive" 
+          size="sm"
+          onClick={() => onDelete(area.id)}
+        >
+          <Trash2 className="w-3 h-3" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 interface Branch {
   id: string;
   name: string;
@@ -565,6 +629,55 @@ export default function BranchesManagement() {
     }
   };
 
+  // Handle drag end for delivery areas
+  const handleAreaDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id || !selectedBranchForAreas) return;
+    
+    const branchAreas = getBranchAreas(selectedBranchForAreas.id);
+    const oldIndex = branchAreas.findIndex((a) => a.id === active.id);
+    const newIndex = branchAreas.findIndex((a) => a.id === over.id);
+    
+    const newAreas = arrayMove(branchAreas, oldIndex, newIndex);
+    
+    // Update local state
+    setDeliveryAreas(prev => {
+      const otherAreas = prev.filter(a => a.branch_id !== selectedBranchForAreas.id);
+      return [...otherAreas, ...newAreas.map((area, index) => ({ ...area, display_order: index }))];
+    });
+    
+    // Update display_order in database
+    try {
+      const updates = newAreas.map((area, index) => ({
+        id: area.id,
+        name: area.name,
+        branch_id: area.branch_id,
+        delivery_price: area.delivery_price,
+        display_order: index,
+      }));
+      
+      const { error } = await supabase
+        .from('delivery_areas')
+        .upsert(updates);
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'تم الترتيب',
+        description: 'تم تحديث ترتيب المناطق',
+      });
+    } catch (error) {
+      console.error('Error updating area order:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تحديث الترتيب',
+        variant: 'destructive',
+      });
+      fetchData();
+    }
+  };
+
   const openDeleteAreaDialog = (areaId: string) => {
     setAreaToDelete(areaId);
     setDeleteAreaDialogOpen(true);
@@ -896,36 +1009,28 @@ export default function BranchesManagement() {
                 <p className="text-gray-500 text-sm text-center py-4">
                   لا توجد مناطق مضافة لهذا الفرع
                 </p>
-              ) : (
-                selectedBranchForAreas && getBranchAreas(selectedBranchForAreas.id).map(area => (
-                  <div 
-                    key={area.id} 
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              ) : selectedBranchForAreas && (
+                <DndContext 
+                  sensors={sensors} 
+                  collisionDetection={closestCenter} 
+                  onDragEnd={handleAreaDragEnd}
+                >
+                  <SortableContext 
+                    items={getBranchAreas(selectedBranchForAreas.id).map(a => a.id)} 
+                    strategy={verticalListSortingStrategy}
                   >
-                    <div>
-                      <span className="font-medium">{area.name}</span>
-                      <span className="text-primary mr-2">
-                        ({area.delivery_price} جنيه)
-                      </span>
+                    <div className="space-y-2">
+                      {getBranchAreas(selectedBranchForAreas.id).map(area => (
+                        <SortableAreaItem
+                          key={area.id}
+                          area={area}
+                          onEdit={openEditArea}
+                          onDelete={openDeleteAreaDialog}
+                        />
+                      ))}
                     </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => openEditArea(area)}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => openDeleteAreaDialog(area.id)}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))
+                  </SortableContext>
+                </DndContext>
               )}
             </div>
           </div>
