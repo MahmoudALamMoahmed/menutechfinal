@@ -457,12 +457,14 @@ ${orderText}
         
         {/* Main sharp image on top */}
         {restaurant.cover_image_url && (
-          <img 
-            src={getCoverImageUrl(restaurant.cover_image_url)} 
-            alt={restaurant.name} 
-            className="relative w-full h-full object-contain z-10" 
-            loading="eager" 
-          />
+          <div className="relative w-full h-full flex items-center justify-center z-10 p-4">
+            <img 
+              src={getCoverImageUrl(restaurant.cover_image_url)} 
+              alt={restaurant.name} 
+              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl border-4 border-white/20" 
+              loading="eager" 
+            />
+          </div>
         )}
       </div>
 
