@@ -40,11 +40,14 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
+  rectSortingStrategy,
   verticalListSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable';
@@ -79,13 +82,16 @@ function SortableBranchCard({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    transition: transition || 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1)',
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
-      <Card className={`${!branch.is_active ? 'opacity-60' : ''}`}>
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      className={`${isDragging ? 'z-50 opacity-50' : ''}`}
+    >
+      <Card className={`${!branch.is_active ? 'opacity-60' : ''} transition-shadow duration-200 ${isDragging ? 'shadow-2xl ring-2 ring-primary' : ''}`}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -305,6 +311,9 @@ export default function BranchesManagement() {
   // Search and filter
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  
+  // Active dragging branch
+  const [activeDragBranch, setActiveDragBranch] = useState<Branch | null>(null);
 
   // Filtered branches
   const filteredBranches = branches.filter(branch => {
@@ -530,9 +539,20 @@ export default function BranchesManagement() {
     })
   );
 
+  // Handle drag start for branches
+  const handleBranchDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const branch = branches.find(b => b.id === active.id);
+    if (branch) {
+      setActiveDragBranch(branch);
+    }
+  };
+
   // Handle drag end for branches
   const handleBranchDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    
+    setActiveDragBranch(null);
     
     if (!over || active.id === over.id) return;
     
@@ -977,11 +997,12 @@ export default function BranchesManagement() {
           <DndContext 
             sensors={sensors} 
             collisionDetection={closestCenter} 
+            onDragStart={handleBranchDragStart}
             onDragEnd={handleBranchDragEnd}
           >
             <SortableContext 
               items={filteredBranches.map(b => b.id)} 
-              strategy={verticalListSortingStrategy}
+              strategy={rectSortingStrategy}
             >
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredBranches.map((branch) => (
@@ -997,6 +1018,39 @@ export default function BranchesManagement() {
                 ))}
               </div>
             </SortableContext>
+            
+            {/* Drag Overlay for smooth animations */}
+            <DragOverlay>
+              {activeDragBranch ? (
+                <div className="rotate-3 scale-105">
+                  <Card className="shadow-2xl ring-2 ring-primary bg-white">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <GripVertical className="w-5 h-5 text-primary" />
+                          <CardTitle className="text-lg">{activeDragBranch.name}</CardTitle>
+                        </div>
+                        <Switch checked={activeDragBranch.is_active} disabled />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {activeDragBranch.address && (
+                        <div className="flex items-start gap-2 text-sm">
+                          <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
+                          <span className="text-gray-600">{activeDragBranch.address}</span>
+                        </div>
+                      )}
+                      {activeDragBranch.phone && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-600">{activeDragBranch.phone}</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : null}
+            </DragOverlay>
           </DndContext>
         )}
       </div>
