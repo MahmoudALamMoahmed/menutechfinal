@@ -155,7 +155,7 @@ export function getCoverImageUrl(url: string | null | undefined): string {
  * الأبعاد: 200x200
  */
 export function getLogoUrl(url: string | null | undefined): string {
-  return getOptimizedUrl(url, { width: 200, height: 200, crop: 'fill' });
+  return getOptimizedUrl(url, { width: 400, height: 400, quality: 90, crop: 'fill' });
 }
 
 /**
