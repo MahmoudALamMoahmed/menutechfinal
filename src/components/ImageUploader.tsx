@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Trash2, Loader2, Image as ImageIcon, CheckCircle2, Crop } from 'lucide-react';
-import { uploadToCloudinary, deleteFromCloudinary, getOptimizedUrl, UploadProgress } from '@/lib/cloudinary';
+import { Upload, Trash2, Loader2, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
+import { uploadToCloudinary, deleteFromCloudinary, getOptimizedUrl, UploadProgress, ImageType } from '@/lib/cloudinary';
 import { cn } from '@/lib/utils';
 import ImageCropper from './ImageCropper';
 
@@ -13,6 +13,7 @@ interface ImageUploaderProps {
   onUploadComplete: (url: string, publicId: string) => void;
   onDelete: () => void;
   aspectRatio?: 'square' | 'cover' | 'logo';
+  imageType?: ImageType;
   label?: string;
   className?: string;
   enableCrop?: boolean;
@@ -25,6 +26,7 @@ export default function ImageUploader({
   onUploadComplete,
   onDelete,
   aspectRatio = 'square',
+  imageType = 'product',
   label = 'رفع صورة',
   className,
   enableCrop = true,
@@ -92,7 +94,7 @@ export default function ImageUploader({
       }
 
       // Upload new image with progress tracking
-      const result = await uploadToCloudinary(file, publicId, (progress) => {
+      const result = await uploadToCloudinary(file, publicId, imageType, (progress) => {
         setUploadProgress(progress);
       });
       

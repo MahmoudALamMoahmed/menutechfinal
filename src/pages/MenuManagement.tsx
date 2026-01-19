@@ -1028,6 +1028,7 @@ export default function MenuManagement() {
                       currentPublicId={itemForm.image_public_id}
                       publicId={getMenuItemPublicId(restaurant.username, editingItem?.id || tempItemId!)}
                       aspectRatio="square"
+                      imageType="product"
                       onUploadComplete={(url, publicId) => {
                         setItemForm(prev => ({
                           ...prev,
