@@ -23,7 +23,11 @@ export default function ShareDialog({ restaurantName, username }: ShareDialogPro
   const { toast } = useToast();
   const qrRef = useRef<HTMLCanvasElement>(null);
 
-  const restaurantUrl = `${window.location.origin}/${username}`;
+  // Ensure URL has proper format with https:// protocol
+  const baseUrl = window.location.origin.startsWith('http') 
+    ? window.location.origin 
+    : `https://${window.location.host}`;
+  const restaurantUrl = `${baseUrl}/${username}`;
 
   const handleCopy = async () => {
     try {
