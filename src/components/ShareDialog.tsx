@@ -124,9 +124,15 @@ export default function ShareDialog({ restaurantName, username }: ShareDialogPro
             <QRCodeCanvas 
               ref={qrRef}
               value={restaurantUrl} 
-              size={180}
-              level="H"
-              includeMargin={false}
+              size={200}
+              level="M"
+              includeMargin={true}
+              imageSettings={{
+                src: '',
+                height: 0,
+                width: 0,
+                excavate: false,
+              }}
             />
           </div>
 
