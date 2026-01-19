@@ -85,19 +85,20 @@ function SortableBranchCard({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className={`relative ${!branch.is_active ? 'opacity-60' : ''}`}>
-        {/* Drag Handle */}
-        <button
-          className="absolute top-3 left-3 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none z-10"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="w-5 h-5" />
-        </button>
-        
-        <CardHeader className="pb-2 pr-4">
+      <Card className={`${!branch.is_active ? 'opacity-60' : ''}`}>
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">{branch.name}</CardTitle>
+            <div className="flex items-center gap-2">
+              {/* Drag Handle */}
+              <button
+                className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+                {...attributes}
+                {...listeners}
+              >
+                <GripVertical className="w-5 h-5" />
+              </button>
+              <CardTitle className="text-lg">{branch.name}</CardTitle>
+            </div>
             <Switch
               checked={branch.is_active}
               onCheckedChange={() => onToggleActive(branch)}
