@@ -446,8 +446,24 @@ ${orderText}
       </div>
 
       {/* Cover Image */}
-      <div className="relative w-full h-64 md:h-80 lg:h-96 bg-gray-900 overflow-hidden">
-      {restaurant.cover_image_url && <img src={getCoverImageUrl(restaurant.cover_image_url)} alt={restaurant.name} className="w-full h-full object-contain" loading="eager" />}
+      <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
+        {/* Background blurred image */}
+        {restaurant.cover_image_url && (
+          <div 
+            className="absolute inset-0 bg-cover bg-center blur-xl scale-110" 
+            style={{ backgroundImage: `url(${getCoverImageUrl(restaurant.cover_image_url)})` }}
+          />
+        )}
+        
+        {/* Main sharp image on top */}
+        {restaurant.cover_image_url && (
+          <img 
+            src={getCoverImageUrl(restaurant.cover_image_url)} 
+            alt={restaurant.name} 
+            className="relative w-full h-full object-contain z-10" 
+            loading="eager" 
+          />
+        )}
       </div>
 
       {/* Restaurant Info */}
