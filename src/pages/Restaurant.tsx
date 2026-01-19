@@ -457,7 +457,7 @@ ${orderText}
         
         {/* Main sharp image on top */}
         {restaurant.cover_image_url && (
-          <div className="relative w-full h-full flex items-center justify-center z-10 p-4">
+          <div className="relative w-full h-full flex items-center justify-center z-10 p-2">
             <img 
               src={getCoverImageUrl(restaurant.cover_image_url)} 
               alt={restaurant.name} 
