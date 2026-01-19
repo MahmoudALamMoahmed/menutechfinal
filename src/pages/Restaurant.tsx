@@ -624,7 +624,7 @@ ${orderText}
                     </div>
 
                     {item.image_url && <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                        <img src={getMenuItemUrl(item.image_url, 'thumbnail')} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                        <img src={getMenuItemUrl(item.image_url, 'medium')} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
                       </div>}
                   </div>
                 </CardContent>
