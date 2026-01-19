@@ -457,13 +457,17 @@ ${orderText}
         
         {/* Main sharp image on top */}
         {restaurant.cover_image_url && (
-          <div className="relative w-full h-full flex items-center justify-center z-10 p-2">
-            <img 
-              src={getCoverImageUrl(restaurant.cover_image_url)} 
-              alt={restaurant.name} 
-              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl border-4 border-white/20" 
-              loading="eager" 
-            />
+          <div className="relative w-full h-full flex items-center justify-center z-10 p-6">
+            <div className="relative">
+              <img 
+                src={getCoverImageUrl(restaurant.cover_image_url)} 
+                alt={restaurant.name} 
+                className="max-w-full max-h-full object-contain rounded-xl shadow-2xl" 
+                loading="eager" 
+              />
+              {/* إطار داخلي */}
+              <div className="absolute inset-0 border-2 border-white/10 rounded-xl pointer-events-none"></div>
+            </div>
           </div>
         )}
       </div>
