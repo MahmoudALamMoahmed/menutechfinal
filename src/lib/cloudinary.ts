@@ -5,13 +5,49 @@ const CLOUD_NAME = 'dmclexcnp';
 const UPLOAD_PRESET = 'restaurant-uploads';
 
 // ============ Image Compression Options ============
-const COMPRESSION_OPTIONS = {
-  maxSizeMB: 1, // الحد الأقصى للحجم 1 ميجابايت
-  maxWidthOrHeight: 1920, // الحد الأقصى للأبعاد
-  useWebWorker: true, // استخدام Web Worker للأداء
-  fileType: 'image/webp', // تحويل إلى WebP
-  initialQuality: 0.8, // جودة البداية
+
+// إعدادات خاصة بالغلاف - جودة عالية جداً
+const COVER_COMPRESSION_OPTIONS = {
+  maxSizeMB: 3,
+  maxWidthOrHeight: 2400,
+  useWebWorker: true,
+  fileType: 'image/webp' as const,
+  initialQuality: 0.95,
 };
+
+// إعدادات خاصة باللوجو - جودة عالية
+const LOGO_COMPRESSION_OPTIONS = {
+  maxSizeMB: 1,
+  maxWidthOrHeight: 800,
+  useWebWorker: true,
+  fileType: 'image/webp' as const,
+  initialQuality: 0.9,
+};
+
+// إعدادات خاصة بصور المنتجات - جودة جيدة
+const PRODUCT_COMPRESSION_OPTIONS = {
+  maxSizeMB: 1,
+  maxWidthOrHeight: 1920,
+  useWebWorker: true,
+  fileType: 'image/webp' as const,
+  initialQuality: 0.85,
+};
+
+// نوع الصورة
+export type ImageType = 'cover' | 'logo' | 'product';
+
+// الحصول على إعدادات الضغط حسب نوع الصورة
+function getCompressionOptions(imageType: ImageType) {
+  switch (imageType) {
+    case 'cover':
+      return COVER_COMPRESSION_OPTIONS;
+    case 'logo':
+      return LOGO_COMPRESSION_OPTIONS;
+    case 'product':
+    default:
+      return PRODUCT_COMPRESSION_OPTIONS;
+  }
+}
 
 // ============ Progress Callback Types ============
 export interface UploadProgress {
@@ -24,13 +60,18 @@ export type ProgressCallback = (progress: UploadProgress) => void;
 
 /**
  * ضغط الصورة قبل الرفع مع تتبع التقدم
+ * @param file - الملف المراد ضغطه
+ * @param imageType - نوع الصورة (cover, logo, product)
+ * @param onProgress - callback لتتبع التقدم
  */
 async function compressImage(
   file: File, 
+  imageType: ImageType = 'product',
   onProgress?: ProgressCallback
 ): Promise<File> {
   try {
-    console.log('Original file size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+    const options = getCompressionOptions(imageType);
+    console.log(`Original file size: ${(file.size / 1024 / 1024).toFixed(2)} MB, Type: ${imageType}`);
     
     onProgress?.({
       stage: 'compressing',
@@ -39,7 +80,7 @@ async function compressImage(
     });
     
     const compressedFile = await imageCompression(file, {
-      ...COMPRESSION_OPTIONS,
+      ...options,
       onProgress: (percent) => {
         onProgress?.({
           stage: 'compressing',
@@ -49,8 +90,8 @@ async function compressImage(
       }
     });
     
-    console.log('Compressed file size:', (compressedFile.size / 1024 / 1024).toFixed(2), 'MB');
-    console.log('Compression ratio:', ((1 - compressedFile.size / file.size) * 100).toFixed(1), '%');
+    console.log(`Compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`Compression ratio: ${((1 - compressedFile.size / file.size) * 100).toFixed(1)}%`);
     
     return compressedFile;
   } catch (error) {
@@ -149,16 +190,18 @@ interface CloudinaryUploadResponse {
  * رفع صورة مباشرة إلى Cloudinary من المتصفح مع folders صحيحة
  * @param file - الملف المراد رفعه
  * @param publicId - المعرف المحدد للصورة (مع المسار الكامل)
+ * @param imageType - نوع الصورة (cover, logo, product)
  * @param onProgress - callback لتتبع التقدم
  */
 export async function uploadToCloudinary(
   file: File,
   publicId: string,
+  imageType: ImageType = 'product',
   onProgress?: ProgressCallback
 ): Promise<CloudinaryUploadResponse> {
   try {
-    // ضغط الصورة قبل الرفع
-    const compressedFile = await compressImage(file, onProgress);
+    // ضغط الصورة قبل الرفع حسب نوعها
+    const compressedFile = await compressImage(file, imageType, onProgress);
     
     // إضافة timestamp للـ public_id لجعله فريد في كل مرة
     const uniquePublicId = `${publicId}_${Date.now()}`;

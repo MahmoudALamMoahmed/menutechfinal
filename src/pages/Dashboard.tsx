@@ -372,6 +372,7 @@ export default function Dashboard() {
                   currentPublicId={formData.cover_image_public_id}
                   publicId={getCoverPublicId(restaurant.username)}
                   aspectRatio="cover"
+                  imageType="cover"
                   onUploadComplete={(url, publicId) => {
                     setFormData(prev => ({
                       ...prev,
@@ -393,6 +394,7 @@ export default function Dashboard() {
                   currentPublicId={formData.logo_public_id}
                   publicId={getLogoPublicId(restaurant.username)}
                   aspectRatio="logo"
+                  imageType="logo"
                   onUploadComplete={(url, publicId) => {
                     setFormData(prev => ({
                       ...prev,
