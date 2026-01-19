@@ -147,7 +147,7 @@ export function getOptimizedUrl(
  * الأبعاد: 800x400
  */
 export function getCoverImageUrl(url: string | null | undefined): string {
-  return getOptimizedUrl(url, { width: 800, height: 400, crop: 'fill' });
+  return getOptimizedUrl(url, { width: 1600, height: 800, quality: 90, crop: 'fill' });
 }
 
 /**
