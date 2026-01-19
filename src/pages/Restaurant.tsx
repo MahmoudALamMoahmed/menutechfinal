@@ -480,15 +480,15 @@ ${orderText}
             )} */}
             
             {/* Social Media & Contact Icons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {/* أيقونة الفروع والتواصل */}
               <BranchesDialog 
                 restaurantId={restaurant.id}
                 trigger={
                   <button 
-                    className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-primary hover:text-white transition-colors duration-200"
+                    className="w-9 h-9 bg-gradient-to-br from-primary to-primary/80 text-white rounded-xl flex items-center justify-center hover:scale-110 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300"
                   >
-                    <Building2 className="w-4 h-4" />
+                    <Building2 className="w-5 h-5" />
                   </button>
                 }
               />
@@ -498,9 +498,9 @@ ${orderText}
                   href={restaurant.facebook_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                  className="w-9 h-9 bg-[#1877F2] text-white rounded-xl flex items-center justify-center hover:scale-110 hover:shadow-lg hover:shadow-[#1877F2]/40 transition-all duration-300"
                 >
-                  <Facebook className="w-4 h-4" />
+                  <Facebook className="w-5 h-5" />
                 </a>
               )}
               
@@ -509,9 +509,9 @@ ${orderText}
                   href={restaurant.instagram_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-pink-600 hover:text-white transition-colors duration-200"
+                  className="w-9 h-9 bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white rounded-xl flex items-center justify-center hover:scale-110 hover:shadow-lg hover:shadow-[#FD1D1D]/40 transition-all duration-300"
                 >
-                  <Instagram className="w-4 h-4" />
+                  <Instagram className="w-5 h-5" />
                 </a>
               )}
             </div>
