@@ -456,12 +456,11 @@ ${orderText}
         )}
         
         {/* Main sharp image on top */}
-        {/* Main sharp image on top */}
         {restaurant.cover_image_url && (
           <img 
             src={getCoverImageUrl(restaurant.cover_image_url)} 
             alt={restaurant.name} 
-            className="relative w-full h-full object-contain z-10 drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+            className="relative w-full h-full object-contain z-10" 
             loading="eager" 
           />
         )}
