@@ -18,8 +18,11 @@ import {
   Phone,
   Building2,
   Navigation,
-  GripVertical
+  GripVertical,
+  Search,
+  Filter
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -297,6 +300,22 @@ export default function BranchesManagement() {
   const [deleteAreaDialogOpen, setDeleteAreaDialogOpen] = useState(false);
   const [areaToDelete, setAreaToDelete] = useState<string | null>(null);
   const [deletingArea, setDeletingArea] = useState(false);
+
+  // Search and filter
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+
+  // Filtered branches
+  const filteredBranches = branches.filter(branch => {
+    const matchesSearch = branch.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (branch.address && branch.address.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesStatus = statusFilter === 'all' ||
+      (statusFilter === 'active' && branch.is_active) ||
+      (statusFilter === 'inactive' && !branch.is_active);
+    
+    return matchesSearch && matchesStatus;
+  });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -904,6 +923,32 @@ export default function BranchesManagement() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Search and Filter */}
+        {branches.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="ابحث بالاسم أو العنوان..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-10"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={(value: 'all' | 'active' | 'inactive') => setStatusFilter(value)}>
+              <SelectTrigger className="w-full sm:w-40">
+                <Filter className="w-4 h-4 ml-2" />
+                <SelectValue placeholder="الحالة" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع الفروع</SelectItem>
+                <SelectItem value="active">الفروع الفعالة</SelectItem>
+                <SelectItem value="inactive">الفروع المعطلة</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {branches.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
@@ -916,6 +961,17 @@ export default function BranchesManagement() {
               </Button>
             </CardContent>
           </Card>
+        ) : filteredBranches.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Search className="w-16 h-16 text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-600 mb-2">لا توجد نتائج</h3>
+              <p className="text-gray-500 text-sm mb-4">لم يتم العثور على فروع مطابقة للبحث</p>
+              <Button variant="outline" onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}>
+                إعادة تعيين البحث
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <DndContext 
             sensors={sensors} 
@@ -923,11 +979,11 @@ export default function BranchesManagement() {
             onDragEnd={handleBranchDragEnd}
           >
             <SortableContext 
-              items={branches.map(b => b.id)} 
+              items={filteredBranches.map(b => b.id)} 
               strategy={verticalListSortingStrategy}
             >
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {branches.map((branch) => (
+                {filteredBranches.map((branch) => (
                   <SortableBranchCard
                     key={branch.id}
                     branch={branch}
