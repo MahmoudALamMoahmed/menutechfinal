@@ -144,7 +144,7 @@ export function getOptimizedUrl(
 
 /**
  * الحصول على رابط محسّن لصورة الغلاف
- * الأبعاد: 800x400
+ * الأبعاد: 1600x800
  */
 export function getCoverImageUrl(url: string | null | undefined): string {
   return getOptimizedUrl(url, { width: 1600, height: 800, quality: 90, crop: 'fill' });
@@ -152,7 +152,7 @@ export function getCoverImageUrl(url: string | null | undefined): string {
 
 /**
  * الحصول على رابط محسّن للوجو
- * الأبعاد: 200x200
+ * الأبعاد: 400x400
  */
 export function getLogoUrl(url: string | null | undefined): string {
   return getOptimizedUrl(url, { width: 400, height: 400, quality: 90, crop: 'fill' });
