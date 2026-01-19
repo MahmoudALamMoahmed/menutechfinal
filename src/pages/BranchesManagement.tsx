@@ -27,6 +27,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 
 interface DeliveryArea {
   id: string;
@@ -91,6 +92,14 @@ export default function BranchesManagement() {
   const [areaForm, setAreaForm] = useState({ name: '', delivery_price: 0 });
   const [editingArea, setEditingArea] = useState<DeliveryArea | null>(null);
   const [savingArea, setSavingArea] = useState(false);
+
+  // Delete confirmation dialogs
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [branchToDelete, setBranchToDelete] = useState<string | null>(null);
+  const [deletingBranch, setDeletingBranch] = useState(false);
+  const [deleteAreaDialogOpen, setDeleteAreaDialogOpen] = useState(false);
+  const [areaToDelete, setAreaToDelete] = useState<string | null>(null);
+  const [deletingArea, setDeletingArea] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -244,14 +253,20 @@ export default function BranchesManagement() {
     }
   };
 
-  const handleDelete = async (branchId: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الفرع؟')) return;
+  const openDeleteDialog = (branchId: string) => {
+    setBranchToDelete(branchId);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!branchToDelete) return;
+
+    setDeletingBranch(true);
     try {
       const { error } = await supabase
         .from('branches')
         .delete()
-        .eq('id', branchId);
+        .eq('id', branchToDelete);
 
       if (error) throw error;
 
@@ -260,6 +275,8 @@ export default function BranchesManagement() {
         description: 'تم حذف الفرع بنجاح',
       });
 
+      setDeleteDialogOpen(false);
+      setBranchToDelete(null);
       fetchData();
     } catch (error) {
       console.error('Error deleting branch:', error);
@@ -268,6 +285,8 @@ export default function BranchesManagement() {
         description: 'حدث خطأ أثناء حذف الفرع',
         variant: 'destructive',
       });
+    } finally {
+      setDeletingBranch(false);
     }
   };
 
@@ -362,14 +381,20 @@ export default function BranchesManagement() {
     }
   };
 
-  const handleDeleteArea = async (areaId: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذه المنطقة؟')) return;
+  const openDeleteAreaDialog = (areaId: string) => {
+    setAreaToDelete(areaId);
+    setDeleteAreaDialogOpen(true);
+  };
 
+  const handleConfirmDeleteArea = async () => {
+    if (!areaToDelete) return;
+
+    setDeletingArea(true);
     try {
       const { error } = await supabase
         .from('delivery_areas')
         .delete()
-        .eq('id', areaId);
+        .eq('id', areaToDelete);
 
       if (error) throw error;
 
@@ -378,6 +403,8 @@ export default function BranchesManagement() {
         description: 'تم حذف المنطقة بنجاح',
       });
 
+      setDeleteAreaDialogOpen(false);
+      setAreaToDelete(null);
       fetchData();
     } catch (error) {
       console.error('Error deleting area:', error);
@@ -386,6 +413,8 @@ export default function BranchesManagement() {
         description: 'حدث خطأ أثناء حذف المنطقة',
         variant: 'destructive',
       });
+    } finally {
+      setDeletingArea(false);
     }
   };
 
@@ -653,7 +682,7 @@ export default function BranchesManagement() {
                     <Button 
                       variant="destructive" 
                       size="sm"
-                      onClick={() => handleDelete(branch.id)}
+                      onClick={() => openDeleteDialog(branch.id)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -753,7 +782,7 @@ export default function BranchesManagement() {
                       <Button 
                         variant="destructive" 
                         size="sm"
-                        onClick={() => handleDeleteArea(area.id)}
+                        onClick={() => openDeleteAreaDialog(area.id)}
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -765,6 +794,26 @@ export default function BranchesManagement() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Branch Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        title="حذف الفرع"
+        description="هل أنت متأكد من حذف هذا الفرع؟ سيتم حذف جميع مناطق التوصيل المرتبطة به أيضاً. لا يمكن التراجع عن هذا الإجراء."
+        isLoading={deletingBranch}
+      />
+
+      {/* Delete Area Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={deleteAreaDialogOpen}
+        onOpenChange={setDeleteAreaDialogOpen}
+        onConfirm={handleConfirmDeleteArea}
+        title="حذف المنطقة"
+        description="هل أنت متأكد من حذف هذه المنطقة؟ لا يمكن التراجع عن هذا الإجراء."
+        isLoading={deletingArea}
+      />
     </div>
   );
 }
