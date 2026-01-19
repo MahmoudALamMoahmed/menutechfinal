@@ -447,7 +447,7 @@ ${orderText}
 
       {/* Cover Image */}
       <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
-        {/* Background blurred image */}
+        {/* Background blured image */}
         {restaurant.cover_image_url && (
           <div 
             className="absolute inset-0 bg-cover bg-center blur-xl scale-110" 
