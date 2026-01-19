@@ -17,7 +17,8 @@ import {
   MapPin,
   Phone,
   Building2,
-  Navigation
+  Navigation,
+  GripVertical
 } from 'lucide-react';
 import {
   Dialog,
@@ -28,6 +29,138 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Sortable Branch Card Component
+interface SortableBranchCardProps {
+  branch: Branch;
+  onToggleActive: (branch: Branch) => void;
+  onEdit: (branch: Branch) => void;
+  onDelete: (branchId: string) => void;
+  onOpenAreas: (branch: Branch) => void;
+  areasCount: number;
+}
+
+function SortableBranchCard({ 
+  branch, 
+  onToggleActive, 
+  onEdit, 
+  onDelete, 
+  onOpenAreas,
+  areasCount 
+}: SortableBranchCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: branch.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card className={`relative ${!branch.is_active ? 'opacity-60' : ''}`}>
+        {/* Drag Handle */}
+        <button
+          className="absolute top-3 left-3 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none z-10"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="w-5 h-5" />
+        </button>
+        
+        <CardHeader className="pb-2 pr-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">{branch.name}</CardTitle>
+            <Switch
+              checked={branch.is_active}
+              onCheckedChange={() => onToggleActive(branch)}
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {branch.address && (
+            <div className="flex items-start gap-2 text-sm">
+              <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
+              <span className="text-gray-600">{branch.address}</span>
+            </div>
+          )}
+          {branch.phone && (
+            <div className="flex items-center gap-2 text-sm">
+              <Phone className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-600">{branch.phone}</span>
+            </div>
+          )}
+          {branch.delivery_phone && (
+            <div className="flex items-center gap-2 text-sm">
+              <Phone className="w-4 h-4 text-primary" />
+              <span className="text-gray-600">دليفري: {branch.delivery_phone}</span>
+            </div>
+          )}
+          
+          {/* عرض عدد المناطق */}
+          <div className="flex items-center gap-2 text-sm">
+            <Navigation className="w-4 h-4 text-green-500" />
+            <span className="text-gray-600">
+              {areasCount} مناطق توصيل
+            </span>
+          </div>
+          
+          <div className="flex gap-2 pt-2 border-t">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              onClick={() => onOpenAreas(branch)}
+            >
+              <Navigation className="w-4 h-4 ml-1" />
+              المناطق
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              onClick={() => onEdit(branch)}
+            >
+              <Edit2 className="w-4 h-4 ml-1" />
+              تعديل
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              onClick={() => onDelete(branch.id)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 interface DeliveryArea {
   id: string;
@@ -302,6 +435,57 @@ export default function BranchesManagement() {
       fetchData();
     } catch (error) {
       console.error('Error toggling branch status:', error);
+    }
+  };
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end for branches
+  const handleBranchDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+    
+    const oldIndex = branches.findIndex((b) => b.id === active.id);
+    const newIndex = branches.findIndex((b) => b.id === over.id);
+    
+    const newBranches = arrayMove(branches, oldIndex, newIndex);
+    setBranches(newBranches);
+    
+    // Update display_order in database
+    try {
+      const updates = newBranches.map((branch, index) => ({
+        id: branch.id,
+        name: branch.name,
+        restaurant_id: restaurant!.id,
+        display_order: index,
+      }));
+      
+      const { error } = await supabase
+        .from('branches')
+        .upsert(updates);
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'تم الترتيب',
+        description: 'تم تحديث ترتيب الفروع',
+      });
+    } catch (error) {
+      console.error('Error updating branch order:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تحديث الترتيب',
+        variant: 'destructive',
+      });
+      // Revert on error
+      fetchData();
     }
   };
 
@@ -620,77 +804,30 @@ export default function BranchesManagement() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {branches.map((branch) => (
-              <Card key={branch.id} className={!branch.is_active ? 'opacity-60' : ''}>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{branch.name}</CardTitle>
-                    <Switch
-                      checked={branch.is_active}
-                      onCheckedChange={() => toggleActive(branch)}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {branch.address && (
-                    <div className="flex items-start gap-2 text-sm">
-                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                      <span className="text-gray-600">{branch.address}</span>
-                    </div>
-                  )}
-                  {branch.phone && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600">{branch.phone}</span>
-                    </div>
-                  )}
-                  {branch.delivery_phone && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="w-4 h-4 text-primary" />
-                      <span className="text-gray-600">دليفري: {branch.delivery_phone}</span>
-                    </div>
-                  )}
-                  
-                  {/* عرض عدد المناطق */}
-                  <div className="flex items-center gap-2 text-sm">
-                    <Navigation className="w-4 h-4 text-green-500" />
-                    <span className="text-gray-600">
-                      {getBranchAreas(branch.id).length} مناطق توصيل
-                    </span>
-                  </div>
-                  
-                  <div className="flex gap-2 pt-2 border-t">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => openAreasDialog(branch)}
-                    >
-                      <Navigation className="w-4 h-4 ml-1" />
-                      المناطق
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => openEditDialog(branch)}
-                    >
-                      <Edit2 className="w-4 h-4 ml-1" />
-                      تعديل
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => openDeleteDialog(branch.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <DndContext 
+            sensors={sensors} 
+            collisionDetection={closestCenter} 
+            onDragEnd={handleBranchDragEnd}
+          >
+            <SortableContext 
+              items={branches.map(b => b.id)} 
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {branches.map((branch) => (
+                  <SortableBranchCard
+                    key={branch.id}
+                    branch={branch}
+                    onToggleActive={toggleActive}
+                    onEdit={openEditDialog}
+                    onDelete={openDeleteDialog}
+                    onOpenAreas={openAreasDialog}
+                    areasCount={getBranchAreas(branch.id).length}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 
